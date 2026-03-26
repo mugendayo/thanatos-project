@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThanatosGames — World Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===== VARIABLES ===== */
+:root {
+  --ocean-blue:   #3488c0;
+  --sky-top:      #5ba3e8;
+  --sky-bot:      #2d70c8;
+  --path-yellow:  #ffdd00;
+  --rpg-bg:       #00001e;
+  --rpg-border:   #8888ff;
+  --rpg-text:     #ffffff;
+  --rpg-yellow:   #ffdd00;
+  --rpg-dim:      #8888bb;
+  --active-green: #00ee55;
+  --active-red:   #ee2200;
+  --menu-bg:      rgba(0, 0, 28, 0.94);
+}
+
+/* ===== BASE ===== */
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--sky-top);
+  font-family: 'Noto Serif JP', serif;
+  cursor: default;
+  user-select: none;
+}
+
+/* ===== WORLD WRAPPER ===== */
+#world {
+  position: relative;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== OCEAN / SKY ===== */
+#ocean {
+  position: absolute; inset: 0;
+  background: #1a6fad;
+}
+.wave-layer {
+  position: absolute; inset: -20%;
+  background: repeating-linear-gradient(
+    -20deg,
+    transparent 0px, transparent 22px,
+    rgba(100,200,255,0.08) 22px, rgba(100,200,255,0.08) 24px
+  );
+  animation: driftWave 14s ease-in-out infinite;
+}
+.wave-layer:nth-child(2) {
+  opacity: .50;
+  animation-duration: 22s;
+  animation-direction: reverse;
+  background: repeating-linear-gradient(
+    160deg,
+    transparent 0px, transparent 30px,
+    rgba(140,220,255,0.06) 30px, rgba(140,220,255,0.06) 32px
+  );
+}
+@keyframes driftWave {
+  0%,100% { transform: translate(0,0); }
+  50%      { transform: translate(12px, 8px); }
+}
+
+/* ===== MAP SVG ===== */
+#map-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  transform: skewY(-5deg);
+  transform-origin: center center;
+}
+
+/* ===== LAND SANDY SHORES ===== */
+#hokkaido, #honshu, #kyushu, #shikoku {
+  stroke: #c8a84b;
+  stroke-width: 5;
+}
+
+/* ===== TOP HUD ===== */
+#hud-top {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 52px;
+  background: var(--menu-bg);
+  border-bottom: 3px solid var(--rpg-border);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20; pointer-events: none;
+}
+.world-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1.5vw, 13px);
+  color: var(--rpg-yellow);
+  letter-spacing: .12em;
+  text-shadow: 2px 2px 0 #000033;
+}
+.world-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--rpg-dim);
+  text-align: center;
+  margin-top: 5px;
+  letter-spacing: .1em;
+}
+
+/* ===== BOTTOM HUD ===== */
+#hud-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 38px;
+  background: var(--menu-bg);
+  border-top: 3px solid var(--rpg-border);
+  display: flex; align-items: center; justify-content: center; gap: 44px;
+  z-index: 20; pointer-events: none;
+}
+.hint {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--rpg-dim);
+  letter-spacing: .06em;
+}
+
+/* ===== LEFT MENU ===== */
+#left-menu {
+  position: absolute; top: 66px; left: 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 20;
+}
+.menu-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--rpg-yellow);
+  background: var(--menu-bg);
+  border: 2px solid var(--rpg-border);
+  padding: 9px 13px;
+  cursor: pointer;
+  letter-spacing: .10em;
+  text-align: left;
+  transition: border-color .15s, color .15s, box-shadow .15s;
+  box-shadow: 0 0 4px rgba(136,136,255,.20);
+}
+.menu-btn:hover {
+  border-color: #00bcd4;
+  color: #00bcd4;
+  box-shadow: 0 0 10px rgba(0,188,212,.35);
+}
+
+/* ===== LORE OVERLAY ===== */
+#lore-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,20,.82);
+  backdrop-filter: blur(3px);
+  z-index: 110;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+}
+#lore-overlay.open { opacity: 1; pointer-events: all; }
+
+#lore-box {
+  width: min(640px, 92vw);
+  max-height: 82vh;
+  background: rgba(10,10,40,0.95);
+  border: 2px solid #aa44ff;
+  outline: 2px solid rgba(170,68,255,.28);
+  outline-offset: 4px;
+  box-shadow:
+    0 0 0 4px rgba(10,10,40,.95),
+    0 0 0 6px #aa44ff,
+    0 0 32px rgba(170,68,255,.35),
+    0 0 70px rgba(170,68,255,.15);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.lore-head {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid rgba(170,68,255,.40);
+  background: linear-gradient(135deg, rgba(170,68,255,.10) 0%, transparent 60%);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.lore-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1.4vw, 11px);
+  color: #00bcd4;
+  letter-spacing: .08em;
+  line-height: 1.6;
+}
+.lore-close {
+  background: none;
+  border: 1px solid rgba(0,188,212,.5);
+  color: #00bcd4;
+  width: 28px; height: 28px;
+  cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.lore-close:hover {
+  background: rgba(0,188,212,.15);
+  box-shadow: 0 0 10px rgba(0,188,212,.35);
+}
+.lore-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: #e8e8ff;
+  line-height: 2.0;
+  white-space: pre-wrap;
+}
+
+/* ===== LEGEND ===== */
+#legend {
+  position: absolute; top: 66px; right: 14px;
+  background: var(--menu-bg);
+  border: 2px solid var(--rpg-border);
+  padding: 12px 14px;
+  z-index: 20;
+}
+.legend-ttl {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--rpg-yellow);
+  margin-bottom: 10px; letter-spacing: .08em;
+}
+.leg {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--rpg-text);
+  margin-bottom: 8px; line-height: 1.5;
+}
+.leg:last-child { margin-bottom: 0; }
+.ldot {
+  width: 10px; height: 10px; flex-shrink: 0;
+}
+.ldot.c { background: var(--active-green); animation: blinkDot 1s step-end infinite; }
+.ldot.a { background: var(--active-red);   animation: blinkDot .7s step-end infinite; }
+.ldot.l { background: #334455; }
+@keyframes blinkDot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ===== MARKERS ===== */
+#markers { position: absolute; pointer-events: none; }
+
+.marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: all;
+  cursor: pointer;
+  z-index: 10;
+}
+.marker-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1px;
+}
+.m-icon {
+  font-size: 22px;
+  line-height: 1;
+  text-shadow: 2px 2px 0 rgba(0,0,0,.6);
+  transition: transform .15s;
+  display: block;
+}
+/* Pixel down-arrow cursor */
+.m-cursor {
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 11px solid var(--rpg-yellow);
+  filter: drop-shadow(1px 2px 0 #000033);
+  transition: transform .15s;
+}
+.status-c .m-cursor { border-top-color: var(--active-green); animation: cursorBlink 1s  step-end    infinite; }
+.status-a .m-cursor { border-top-color: var(--active-red);   animation: cursorFade  2s  ease-in-out infinite; }
+.status-l .m-cursor { border-top-color: #445566; }
+.status-c .m-icon   { animation: iconGlowGreen 1.2s ease-in-out infinite; }
+.status-a .m-icon   { animation: iconGlowRed   .8s ease-in-out infinite; }
+.status-l .m-icon   { filter: grayscale(1) brightness(.4); }
+.status-l           { cursor: default; }
+
+@keyframes iconGlowGreen {
+  0%, 100% { filter: drop-shadow(0 0 0px var(--active-green)); }
+  50%       { filter: drop-shadow(0 0 7px var(--active-green)); }
+}
+@keyframes iconGlowRed {
+  0%, 100% { filter: drop-shadow(0 0 0px var(--active-red)); }
+  50%       { filter: drop-shadow(0 0 7px var(--active-red)); }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+@keyframes cursorFade {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.marker:hover .m-icon   { transform: translateY(-4px); }
+.marker:hover .m-cursor { transform: translateY(4px); }
+
+.m-label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--rpg-text);
+  white-space: nowrap;
+  background: var(--menu-bg);
+  border: 2px solid var(--rpg-border);
+  padding: 4px 7px;
+  text-shadow: 1px 1px 0 #000;
+  pointer-events: none;
+  opacity: 0; transition: opacity .2s;
+}
+.marker:hover .m-label { opacity: 1; }
+
+/* ===== MODAL OVERLAY ===== */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,20,.82);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+#overlay.open { opacity: 1; pointer-events: all; }
+
+/* ===== MODAL BOX — FF7 REBIRTH FIELD UI ===== */
+#modal {
+  width: min(900px, 95vw);
+  max-height: 80vh;
+  background: rgba(10,10,40,0.92);
+  border: 1px solid rgba(0,188,212,0.3);
+  border-left: 3px solid #00bcd4;
+  box-shadow:
+    0 24px 64px rgba(0,0,0,.75),
+    0 0 40px rgba(0,188,212,.12),
+    inset 0 0 60px rgba(0,10,40,.30);
+  display: flex; flex-direction: column;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform .25s ease-out, opacity .25s ease-out;
+  overflow: hidden;
+  position: relative;
+}
+#overlay.open #modal {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ===== MODAL HEADER ===== */
+.m-head {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(0,188,212,0.25);
+  background: linear-gradient(135deg, rgba(0,188,212,.08) 0%, rgba(10,10,40,0) 60%);
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.m-head-text { flex: 1; }
+.m-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(10px, 1.8vw, 16px);
+  color: #f5a623;
+  margin-bottom: 8px;
+  line-height: 1.6;
+  letter-spacing: .04em;
+}
+.m-tagline {
+  font-size: 12px;
+  color: rgba(0,188,212,.80);
+  line-height: 1.7;
+}
+
+/* ===== STATUS BADGE ===== */
+.badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; padding: 5px 10px;
+  border: 1px solid;
+  white-space: nowrap; flex-shrink: 0; margin-top: 3px;
+}
+.badge.c {
+  color: #ffffff;
+  border-color: #00bcd4;
+  background: rgba(0,188,212,.12);
+  box-shadow: 0 0 8px rgba(0,188,212,.30);
+}
+.badge.a {
+  color: #f5a623;
+  border-color: #f5a623;
+  background: rgba(245,166,35,.10);
+  box-shadow: 0 0 8px rgba(245,166,35,.30);
+  animation: badgePulse .9s ease-in-out infinite;
+}
+.badge.l { color: #556677; border-color: #334455; }
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .55; }
+}
+
+/* ===== CLOSE BUTTON ===== */
+.btn-close {
+  background: none;
+  border: 1px solid rgba(0,188,212,.5);
+  color: #00bcd4;
+  width: 30px; height: 30px;
+  cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s; flex-shrink: 0;
+}
+.btn-close:hover {
+  background: rgba(0,188,212,.15);
+  border-color: #00bcd4;
+  box-shadow: 0 0 10px rgba(0,188,212,.35);
+}
+
+/* ===== MODAL BODY ===== */
+.m-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+/* ===== LEFT PANEL ===== */
+.m-photos {
+  width: 36%; flex-shrink: 0;
+  border-right: 1px solid rgba(0,188,212,.22);
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px 14px; overflow-y: auto;
+  background: rgba(0,188,212,.03);
+}
+
+/* Game icon */
+.game-icon-lg { font-size: 56px; text-align: center; padding: 12px 0 6px; }
+
+/* Tags */
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px; padding: 4px 9px;
+  border: 1px solid rgba(0,188,212,.40);
+  color: #e8e8ff;
+  background: rgba(0,188,212,.08);
+}
+
+/* Review cards */
+.review-card {
+  background: rgba(0,188,212,.04);
+  border: 1px solid rgba(0,188,212,.18);
+  border-left: 3px solid #00bcd4;
+  padding: 10px 12px; margin-bottom: 6px;
+}
+.review-body { font-size: 11px; color: #e8e8ff; line-height: 1.90; font-style: italic; }
+.review-author {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px; color: rgba(0,188,212,.60);
+  margin-top: 6px; text-align: right;
+}
+
+/* ===== RIGHT PANEL ===== */
+.m-info {
+  flex: 1; padding: 16px 18px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* Section boxes */
+.sec {
+  padding: 11px 14px;
+  border: 1px solid rgba(0,188,212,.22);
+  border-left: 3px solid #00bcd4;
+  background: rgba(0,188,212,.04);
+}
+.sec-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: #00bcd4;
+  letter-spacing: .12em; margin-bottom: 9px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 7px;
+}
+.sec-label::before { content: '▶'; color: #f5a623; font-size: 6px; }
+.sec-text { font-size: 12px; color: #e8e8ff; line-height: 1.95; }
+
+/* NEXT QUEST box */
+.next-ev {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(245,166,35,.07);
+  border: 1px solid rgba(245,166,35,.40);
+  padding: 10px 13px;
+  animation: nextEvPulse 2.4s ease-in-out infinite;
+}
+@keyframes nextEvPulse {
+  0%, 100% { box-shadow: 0 0 6px  rgba(245,166,35,.15); }
+  50%       { box-shadow: 0 0 18px rgba(245,166,35,.38); }
+}
+.next-ev-txt {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: #f5a623; line-height: 1.9;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(10,10,40,.8); }
+::-webkit-scrollbar-thumb { background: rgba(0,188,212,.45); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,188,212,.75); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 580px) {
+  .m-body { flex-direction: column; }
+  .m-photos {
+    width: 100%; border-right: none;
+    border-bottom: 1px solid rgba(0,188,212,.22);
+    max-height: 180px;
+  }
+  #legend { display: none; }
+  .m-title { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== WORLD ========== -->
+<div id="world">
+
+  <!-- Ocean / Sky -->
+  <div id="ocean">
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+
+  <!-- SVG World Map — Japan + Philippines RPG Pixel Art -->
+  <svg id="map-svg" viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <filter id="shadow">
+        <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="rgba(15,60,10,.75)"/>
+      </filter>
+      <!-- Wave pattern for ocean -->
+      <pattern id="wave-pattern" x="0" y="0" width="90" height="45" patternUnits="userSpaceOnUse">
+        <path d="M 0 15 Q 22 5 45 15 Q 68 25 90 15" stroke="rgba(120,210,255,0.13)" stroke-width="1.8" fill="none"/>
+        <path d="M 0 30 Q 22 20 45 30 Q 68 40 90 30" stroke="rgba(120,210,255,0.09)" stroke-width="1.2" fill="none"/>
+      </pattern>
+      <!-- Land gradients — Pokemon-style bright green -->
+      <linearGradient id="g-land" x1="0%" y1="0%" x2="60%" y2="100%">
+        <stop offset="0%"   stop-color="#6dce52"/>
+        <stop offset="45%"  stop-color="#4caf50"/>
+        <stop offset="100%" stop-color="#388e3c"/>
+      </linearGradient>
+      <linearGradient id="g-tropical" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#7dd654"/>
+        <stop offset="100%" stop-color="#43a047"/>
+      </linearGradient>
+      <linearGradient id="g-snow" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#eeeeff"/>
+        <stop offset="100%" stop-color="#c8ccee"/>
+      </linearGradient>
+      <!-- Mountain gradient: white peak → gray body -->
+      <linearGradient id="g-mtns" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="28%"  stop-color="#cccccc"/>
+        <stop offset="100%" stop-color="#888888"/>
+      </linearGradient>
+      <radialGradient id="g-forest" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#2d7a2d"/>
+        <stop offset="100%" stop-color="#1a5218"/>
+      </radialGradient>
+    </defs>
+
+    <!-- ── OCEAN WAVE BACKGROUND ── -->
+    <rect width="1000" height="680" fill="url(#wave-pattern)"/>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!--   JAPAN MAP — Kansai expanded (~50% Honshu)  -->
+    <!-- ════════════════════════════════════════════ -->
+
+    <!-- ── HOKKAIDO ── -->
+    <path id="hokkaido" filter="url(#shadow)"
+      stroke="#c8a84b" stroke-width="1.5"
+      d="M 598,178
+         L 580,164 L 570,148 L 562,130 L 568,120 L 578,112
+         L 586,104 L 594,96
+         C 604,84 622,70 640,62
+         L 654,56 L 670,50 L 688,46 L 706,46
+         C 728,48 750,56 770,66
+         L 788,76 L 806,88 L 820,102 L 818,118 L 808,132 L 814,146
+         C 807,158 793,166 774,172
+         C 754,178 732,184 710,186
+         L 694,184
+         C 672,188 648,190 626,186
+         C 608,184 601,180 598,178 Z"
+      fill="url(#g-land)"/>
+    <path d="M 638,64 C 660,52 684,47 708,48 C 734,50 756,58 772,68
+             C 750,62 726,58 702,60 C 678,62 656,64 638,68 Z"
+      fill="url(#g-snow)" opacity=".68"/>
+    <g opacity=".88" transform="translate(690,122)">
+      <polygon points="0,-20 -12,6 12,6"   fill="url(#g-mtns)"/>
+      <polygon points="20,-15 10,7 30,7"   fill="url(#g-mtns)"/>
+      <polygon points="-18,-13 -28,7 -8,7" fill="url(#g-mtns)"/>
+      <polygon points="0,-20 -4,-8 4,-8"   fill="white" opacity=".92"/>
+      <polygon points="20,-15 17,-7 23,-7" fill="white" opacity=".82"/>
+      <polygon points="-18,-13 -21,-5 -15,-5" fill="white" opacity=".78"/>
+    </g>
+    <g fill="#2d7a2d" opacity=".82">
+      <circle cx="646" cy="134" r="16"/><circle cx="662" cy="120" r="15"/>
+      <circle cx="636" cy="148" r="14"/><circle cx="678" cy="132" r="16"/>
+      <circle cx="654" cy="156" r="13"/><circle cx="696" cy="148" r="14"/>
+      <circle cx="670" cy="166" r="13"/><circle cx="640" cy="166" r="12"/>
+    </g>
+
+    <!-- ── HONSHU — Kansai (Kii) ×1.4 expanded ── -->
+    <path id="honshu" filter="url(#shadow)"
+      stroke="#c8a84b" stroke-width="1.5"
+      d="M 624,186
+         C 660,193 700,215 738,248
+         C 756,266 762,290 752,314
+         C 742,336 724,355 706,370
+         C 696,386 680,408 668,438
+         C 656,468 648,504 644,540
+         C 640,580 622,610 600,596
+         C 578,578 552,546 520,524
+         C 488,502 452,480 414,462
+         C 378,444 344,422 314,400
+         C 280,375 255,364 228,356
+         C 200,348 170,344 142,346
+         C 118,349 102,360 98,375
+         C 95,390 100,406 112,418
+         C 128,430 150,438 174,442
+         C 200,446 226,447 254,443
+         C 283,438 312,430 340,424
+         C 360,419 370,418 372,418
+         C 408,400 444,382 476,366
+         C 506,352 532,340 558,330
+         C 580,320 598,312 616,300
+         C 632,290 642,275 644,256
+         C 646,236 638,209 624,193
+         Z"
+      fill="url(#g-land)"/>
+    <!-- 能登半島 Noto Peninsula -->
+    <path stroke="#c8a84b" stroke-width="1.2"
+      d="M 610,298 C 622,285 636,280 644,290
+         C 652,300 646,316 632,322
+         C 618,328 602,322 600,308
+         C 599,301 604,299 610,298 Z"
+      fill="url(#g-land)"/>
+    <!-- 伊豆半島 Izu Peninsula -->
+    <path stroke="#c8a84b" stroke-width="1.2"
+      d="M 744,332 C 752,342 756,356 752,368
+         C 747,378 736,380 730,372
+         C 724,362 724,347 730,337
+         C 735,330 741,329 744,332 Z"
+      fill="url(#g-land)"/>
+    <!-- 日本アルプス -->
+    <g opacity=".90" transform="translate(626,258)">
+      <polygon points="0,-28 -16,8 16,8"   fill="url(#g-mtns)"/>
+      <polygon points="24,-22 10,9 38,9"   fill="url(#g-mtns)"/>
+      <polygon points="-22,-18 -36,9 -8,9" fill="url(#g-mtns)"/>
+      <polygon points="0,-28 -5,-13 5,-13" fill="white" opacity=".95"/>
+      <polygon points="24,-22 20,-12 28,-12" fill="white" opacity=".85"/>
+      <polygon points="-22,-18 -26,-8 -18,-8" fill="white" opacity=".80"/>
+    </g>
+    <!-- 富士山 -->
+    <g opacity=".92" transform="translate(730,322)">
+      <polygon points="0,-28 -16,8 16,8"   fill="url(#g-mtns)"/>
+      <polygon points="0,-28 -5,-12 5,-12" fill="white" opacity=".95"/>
+    </g>
+    <!-- 東北 forests -->
+    <g fill="#2d7a2d" opacity=".82">
+      <circle cx="696" cy="208" r="16"/><circle cx="712" cy="222" r="15"/>
+      <circle cx="682" cy="224" r="14"/><circle cx="702" cy="236" r="13"/>
+      <circle cx="720" cy="210" r="13"/><circle cx="688" cy="240" r="12"/>
+      <circle cx="718" cy="232" r="12"/>
+    </g>
+    <!-- 関西 forests -->
+    <g fill="#2d7a2d" opacity=".75">
+      <circle cx="562" cy="360" r="14"/><circle cx="578" cy="372" r="13"/>
+      <circle cx="548" cy="374" r="13"/><circle cx="566" cy="386" r="12"/>
+      <circle cx="582" cy="354" r="12"/><circle cx="596" cy="370" r="13"/>
+    </g>
+    <!-- 瀬戸内海 Seto Inland Sea -->
+    <ellipse cx="410" cy="492" rx="45" ry="10"
+      fill="rgba(30,80,160,.26)" opacity=".56"/>
+
+    <!-- ── 淡路島 Awaji Island ── -->
+    <ellipse cx="415" cy="490" rx="10" ry="18"
+      stroke="#c8a84b" stroke-width="1.2" fill="url(#g-land)"/>
+
+    <!-- ── 関西国際空港 Kansai International Airport ── -->
+    <rect x="482" y="468" width="18" height="9" rx="2"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
+
+    <!-- ── KANSAI PREFECTURE BOUNDARIES ── -->
+    <g stroke="#6a9040" stroke-width="0.8" fill="none" opacity="0.32" stroke-dasharray="4 3" stroke-linecap="round">
+      <!-- 大阪/京都 境界 -->
+      <path d="M 424,408 C 452,402 488,398 544,402"/>
+      <!-- 大阪/兵庫 境界 -->
+      <path d="M 424,408 C 420,426 414,448 408,472"/>
+      <!-- 大阪/奈良 境界 -->
+      <path d="M 544,402 C 546,422 550,446 554,478"/>
+      <!-- 大阪南/和歌山北 境界 -->
+      <path d="M 408,472 C 440,488 482,496 518,492 C 534,490 544,484 554,478"/>
+      <!-- 奈良/和歌山 境界（紀伊山地） -->
+      <path d="M 554,478 C 560,500 566,526 570,552 C 572,568 573,582 572,590"/>
+      <!-- 奈良/三重 境界（紀伊東稜） -->
+      <path d="M 544,402 C 560,418 578,442 592,468 C 604,494 612,522 616,550 C 618,566 618,580 616,590"/>
+      <!-- 和歌山/三重 境界（紀伊先端） -->
+      <path d="M 572,590 C 588,592 602,592 616,590"/>
+      <!-- 京都/兵庫 境界 -->
+      <path d="M 424,408 C 412,396 398,386 384,382"/>
+      <!-- 京都/滋賀 -->
+      <path d="M 544,402 C 552,388 558,372 563,354"/>
+    </g>
+
+    <!-- ── YODOGAWA RIVER（淀川） ── -->
+    <!-- 琵琶湖南端 → 京都 → 大阪市内（淀川沿い） → 大阪湾 -->
+    <path stroke="#4488cc" stroke-width="2.0" fill="none" opacity="0.60"
+      stroke-linecap="round" stroke-linejoin="round"
+      d="M 563,354 C 546,362 526,370 506,378
+         C 486,386 466,392 450,400
+         C 436,408 424,416 412,424
+         C 402,432 394,440 386,448"/>
+
+    <!-- ── SHIKOKU ── -->
+    <path id="shikoku" filter="url(#shadow)"
+      stroke="#c8a84b" stroke-width="1.4"
+      d="M 372,520
+         C 392,507 424,502 460,508
+         C 496,514 524,530 532,548
+         C 540,566 524,582 492,588
+         C 460,594 424,588 396,575
+         C 368,562 358,544 366,530
+         C 368,523 370,520 372,520 Z"
+      fill="url(#g-land)"/>
+    <g opacity=".68" transform="translate(452,538)">
+      <polygon points="0,-14 -8,5 8,5"  fill="url(#g-mtns)"/>
+      <polygon points="13,-10 6,5 20,5" fill="url(#g-mtns)"/>
+      <polygon points="0,-14 -3,-6 3,-6" fill="white" opacity=".90"/>
+    </g>
+    <!-- 四国 forests -->
+    <g fill="#2d7a2d" opacity=".78">
+      <circle cx="410" cy="554" r="14"/><circle cx="426" cy="542" r="13"/>
+      <circle cx="442" cy="558" r="14"/><circle cx="458" cy="548" r="13"/>
+      <circle cx="420" cy="568" r="12"/><circle cx="400" cy="566" r="12"/>
+    </g>
+
+    <!-- ── KYUSHU (Hoenn-inspired) ── -->
+    <path id="kyushu" filter="url(#shadow)"
+      stroke="#c8a84b" stroke-width="1.5"
+      d="M 130,342
+         C 158,334 190,328 218,328
+         C 244,328 262,338 266,356
+         C 270,374 260,392 246,406
+         L 230,424 L 216,444 L 208,466
+         C 204,484 202,502 198,516
+         C 193,528 183,534 170,530
+         C 157,524 150,512 150,496
+         L 148,474
+         C 145,460 136,450 122,448
+         C 106,446 92,452 82,464
+         C 72,476 74,492 86,500
+         C 100,508 118,504 130,494
+         C 140,484 140,468 136,454
+         C 130,436 126,416 124,398
+         C 121,378 122,360 130,342 Z"
+      fill="url(#g-land)"/>
+    <g opacity=".84" transform="translate(210,420)">
+      <polygon points="0,-24 -13,7 13,7"   fill="#3a0e04"/>
+      <polygon points="0,-24 -4,-9 4,-9"   fill="#ff5522" opacity=".70"/>
+      <circle cx="0" cy="-24" r="10" fill="#ff6600" opacity=".14">
+        <animate attributeName="opacity" values=".14;.46;.14" dur="2.0s" repeatCount="indefinite"/>
+        <animate attributeName="r"       values="10;17;10"    dur="2.0s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <g fill="#2d7a2d" opacity=".82">
+      <circle cx="198" cy="358" r="15"/><circle cx="214" cy="346" r="14"/>
+      <circle cx="184" cy="370" r="14"/><circle cx="228" cy="360" r="13"/>
+      <circle cx="204" cy="378" r="13"/><circle cx="240" cy="372" r="12"/>
+      <circle cx="192" cy="388" r="12"/>
+    </g>
+
+    <!-- ── PARIS ISLAND ── -->
+    <ellipse cx="75" cy="215" rx="30" ry="20"
+      stroke="#c8a84b" stroke-width="2" fill="url(#g-land)" filter="url(#shadow)"/>
+    <text x="75" y="244" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".75">PARIS</text>
+
+    <!-- ── ST. PETERSBURG ISLAND ── -->
+    <ellipse cx="180" cy="115" rx="30" ry="20"
+      stroke="#c8a84b" stroke-width="2" fill="url(#g-land)" filter="url(#shadow)"/>
+    <text x="180" y="144" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".75">ST.PETERSBURG</text>
+
+    <!-- ── TSUSHIMA ── -->
+    <ellipse cx="204" cy="256" rx="9" ry="20"
+      stroke="#c8a84b" stroke-width="1.2" fill="url(#g-land)"/>
+
+    <!-- ── RYUKYU CHAIN ── -->
+    <ellipse cx="352" cy="490" rx="10" ry="22"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-5,352,490)"/>
+    <ellipse cx="323" cy="507" rx="13" ry="11"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
+    <ellipse cx="284" cy="524" rx="16" ry="9"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-18,284,524)"/>
+    <ellipse cx="252" cy="539" rx="10" ry="6"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
+    <path stroke="#c8a84b" stroke-width="1.4"
+      d="M 148,506 C 164,498 188,496 208,502
+         C 224,508 232,520 226,532
+         C 220,544 204,550 186,546
+         C 168,542 152,532 146,520
+         C 141,509 144,505 148,506 Z"
+      fill="url(#g-land)"/>
+    <ellipse cx="110" cy="549" rx="12" ry="6"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-8,110,549)"/>
+    <ellipse cx="82" cy="560" rx="11" ry="5"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-12,82,560)"/>
+    <circle cx="60" cy="569" r="5"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
+
+    <!-- ── TAIWAN (partial) ── -->
+    <ellipse cx="100" cy="478" rx="14" ry="26"
+      stroke="#c8a84b" stroke-width="1.2" fill="url(#g-land)"
+      transform="rotate(-18,100,478)" opacity=".82"/>
+
+    <!-- ── PHILIPPINES: CEBU ── -->
+    <path filter="url(#shadow)"
+      stroke="#c8a84b" stroke-width="1.4"
+      d="M 56,608 L 58,600 L 62,593
+         C 66,587 73,584 79,588
+         C 85,592 86,603 84,615
+         L 82,625
+         C 80,635 74,641 66,641
+         C 58,641 54,633 53,623
+         C 52,615 54,610 56,608 Z"
+      fill="url(#g-tropical)"/>
+    <ellipse cx="42" cy="576" rx="11" ry="16"
+      stroke="#c8a84b" stroke-width="1" fill="url(#g-tropical)" opacity=".80"/>
+
+
+        <!-- ── COMPASS (pixel style) ── -->
+    <g transform="translate(928, 610)" opacity=".65">
+      <rect x="-22" y="-22" width="44" height="44" fill="none" stroke="#ffdd00" stroke-width="2"/>
+      <line x1="0" y1="-18" x2="0" y2="18" stroke="#ffdd00" stroke-width="1.5"/>
+      <line x1="-18" y1="0" x2="18" y2="0"  stroke="#ffdd00" stroke-width="1.5"/>
+      <polygon points="0,-18 -4,-8 4,-8" fill="#ffdd00"/>
+      <text x="0" y="-24" text-anchor="middle"
+            font-family="'Press Start 2P',monospace" font-size="8" fill="#ffdd00">N</text>
+    </g>
+
+    <!-- ── SCALE ── -->
+    <g transform="translate(52, 648)" opacity=".5">
+      <line x1="0"  y1="0" x2="72" y2="0" stroke="#ffdd00" stroke-width="2"/>
+      <line x1="0"  y1="-5" x2="0"  y2="5" stroke="#ffdd00" stroke-width="2"/>
+      <line x1="72" y1="-5" x2="72" y2="5" stroke="#ffdd00" stroke-width="2"/>
+      <text x="36" y="-8" text-anchor="middle"
+            font-family="'Press Start 2P',monospace" font-size="7" fill="#ffdd00">SCALE</text>
+    </g>
+  </svg>
+
+  <!-- Markers -->
+  <div id="markers"></div>
+
+  <!-- HUDs -->
+  <div id="hud-top">
+    <div>
+      <div class="world-title">★  THANATOS GAMES WORLD  ★</div>
+      <div class="world-sub">PORTFOLIO WORLD MAP</div>
+    </div>
+  </div>
+  <div id="hud-bottom">
+    <span class="hint">▶ CLICK → 地点を調べる</span>
+    <span class="hint">ESC → 閉じる</span>
+  </div>
+
+  <!-- Left Menu -->
+  <div id="left-menu">
+    <button class="menu-btn" id="btn-world">WORLD</button>
+    <button class="menu-btn" id="btn-howto">HOW TO</button>
+  </div>
+
+  <!-- Legend -->
+  <div id="legend">
+    <div class="legend-ttl">MAP KEY</div>
+    <div class="leg"><div class="ldot c"></div><span>CLEARED — リリース済み</span></div>
+    <div class="leg"><div class="ldot a"></div><span>ACTIVE &nbsp;— 開発中</span></div>
+    <div class="leg"><div class="ldot l"></div><span>SEALED &nbsp;— 未公開</span></div>
+  </div>
+</div>
+
+<!-- ========== LORE POPUP ========== -->
+<div id="lore-overlay">
+  <div id="lore-box">
+    <div class="lore-head">
+      <div class="lore-title" id="lore-title"></div>
+      <button class="lore-close" id="lore-close">✕</button>
+    </div>
+    <div class="lore-body" id="lore-body"></div>
+  </div>
+</div>
+
+<!-- ========== MODAL ========== -->
+<div id="overlay">
+  <div id="modal">
+    <div class="m-head">
+      <div class="m-head-text">
+        <div class="m-title" id="mtitle"></div>
+        <div class="m-tagline" id="mtagline"></div>
+      </div>
+      <div class="badge" id="mbadge"></div>
+      <button class="btn-close" id="mclose">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="m-photos" id="mphotos"></div>
+      <div class="m-info"   id="minfo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCRIPT ========== -->
+<script>
+// =====================================================
+//  MAP LAYOUT — 表示座標とアイコンのみ (ゲーム内容は games.json から取得)
+// =====================================================
+const MAP_LAYOUT = {
+  // status フィールドで games.json の内部ステータスを上書き可能
+  gachi_bunkasai:     { x: 61.5, y: 82.4, icon: '🏫', status: 'archived' }, // 下市/奈良南 → SVG(615,560)
+  densha_game_japan:  { x: 54,   y: 67.9, icon: '🚃', status: 'active'   }, // 難波 → SVG(540,462)
+  misdo_battle:       { x: 57.5, y: 75.3, icon: '🍩', status: 'archived' }, // 新今宮 → SVG(575,512)
+  natsu_no_nostalgia: { x: 14,   y: 50.5, icon: '⛩️' },                      // 糸島 → SVG(140,343)
+  fuyu_no_subliminal: { x: 67,   y: 24,   icon: '🏔️' },                      // ニセコ → SVG(670,163)
+  tokonatsu_no_okami: { x:  7,   y: 91,   icon: '🐺', status: 'archived' }, // セブ → SVG(70,619)
+  hitchhike_derby:    { x: 35,   y: 75,   icon: '🛣️' },                      // 種子島 → SVG(350,510)
+  push_the_friend:    { x: 45,   y: 63.9, icon: '👊', status: 'active'   }, // 芦屋 → SVG(450,435)
+  furo_kore:          { x: 75,   y: 46,   icon: '♨️' },                      // 東京 → SVG(750,313)
+  gendaibyo_clinic:   { x: 50,   y: 58.8, icon: '💊', status: 'archived' }, // 淀川沿い → SVG(500,400)
+};
+
+// internal_only.status → UI表示
+const STATUS_UI = {
+  active:   { label: '⚔ ACTIVE',   cls: 'a' },
+  draft:    { label: '🔒 SEALED',  cls: 'l' },
+  paused:   { label: '🔒 SEALED',  cls: 'l' },
+  archived: { label: '★ CLEARED', cls: 'c' },
+};
+
+let GAMES = [];
+
+// =====================================================
+//  INIT — games.json を fetch して描画
+// =====================================================
+// =====================================================
+//  RESPONSIVE — SVG letterbox に合わせてマーカー位置を補正
+// =====================================================
+function repositionMarkers() {
+  const w = window.innerWidth, h = window.innerHeight;
+  // SVG viewBox 1000×680, preserveAspectRatio="xMidYMid meet"
+  const scale = Math.min(w / 1000, h / 680);
+  const rw = 1000 * scale, rh = 680 * scale;
+  const ox = (w - rw) / 2, oy = (h - rh) / 2;
+  const m = document.getElementById('markers');
+  m.style.left   = ox + 'px';
+  m.style.top    = oy + 'px';
+  m.style.width  = rw + 'px';
+  m.style.height = rh + 'px';
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res  = await fetch('./games.json');
+    const data = await res.json();
+    GAMES = data.games;
+  } catch (e) {
+    console.error('games.json の読み込みに失敗しました:', e);
+    return;
+  }
+  buildMarkers();
+  buildStaticMarkers();
+  repositionMarkers();
+  window.addEventListener('resize', repositionMarkers);
+  initModal();
+});
+
+// =====================================================
+//  STATIC MARKERS (games.json 不要の固定エントリ)
+// =====================================================
+const STATIC_LOCATIONS = [
+  { id: 'paris',          x:  7.5, y: 30,   icon: '🏰', label: 'パリ' },
+  { id: 'st_petersburg',  x: 18,   y: 16,   icon: '🏰', label: 'サンクトペテルブルク' },
+];
+
+function buildStaticMarkers() {
+  const wrap = document.getElementById('markers');
+  STATIC_LOCATIONS.forEach(loc => {
+    const el = document.createElement('div');
+    el.className  = 'marker status-l';
+    el.style.left = loc.x + '%';
+    el.style.top  = loc.y + '%';
+    el.innerHTML  = `
+      <div class="marker-wrap">
+        <div class="m-icon">${loc.icon}</div>
+        <div class="m-cursor"></div>
+      </div>
+      <div class="m-label">${loc.label}</div>
+    `;
+    wrap.appendChild(el);
+  });
+}
+
+// =====================================================
+//  MARKERS
+// =====================================================
+function buildMarkers() {
+  const wrap = document.getElementById('markers');
+  GAMES.forEach(game => {
+    const layout = MAP_LAYOUT[game.game_id];
+    if (!layout) return; // MAP_LAYOUT に未登録のゲームはスキップ
+    const statusKey = layout.status || game.internal_only.status;
+    const st = STATUS_UI[statusKey] || STATUS_UI.draft;
+    const el = document.createElement('div');
+    el.className  = `marker status-${st.cls}`;
+    el.style.left = layout.x + '%';
+    el.style.top  = layout.y + '%';
+    el.innerHTML  = `
+      <div class="marker-wrap">
+        <div class="m-icon">${layout.icon}</div>
+        <div class="m-cursor"></div>
+      </div>
+      <div class="m-label">${game.ui_display.title}</div>
+    `;
+    el.addEventListener('click', () => openModal(game.game_id));
+    wrap.appendChild(el);
+  });
+}
+
+// =====================================================
+//  MODAL
+// =====================================================
+function initModal() {
+  document.getElementById('mclose').addEventListener('click', closeModal);
+  document.getElementById('overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  });
+}
+
+function openModal(gameId) {
+  const game = GAMES.find(g => g.game_id === gameId);
+  if (!game) return;
+  const ui        = game.ui_display;
+  const layout    = MAP_LAYOUT[gameId];
+  const statusKey = (layout && layout.status) || game.internal_only.status;
+  const st        = STATUS_UI[statusKey] || STATUS_UI.draft;
+
+  // ヘッダー
+  document.getElementById('mtitle').textContent   = ui.title;
+  document.getElementById('mtagline').textContent = ui.tagline || '—';
+  const badge = document.getElementById('mbadge');
+  badge.textContent = st.label;
+  badge.className   = `badge ${st.cls}`;
+
+  // 左パネル: アイコン + タグ + 口コミ
+  const pp = document.getElementById('mphotos');
+  const reviewsHtml = (ui.reviews && ui.reviews.length > 0)
+    ? `<div class="sec-label" style="margin-top:4px">口コミ</div>` +
+      ui.reviews.map(r => `
+        <div class="review-card">
+          <div class="review-body">"${r.body}"</div>
+          ${r.author ? `<div class="review-author">— ${r.author}</div>` : ''}
+        </div>`).join('')
+    : '';
+  const tagsHtml = (ui.tags && ui.tags.length > 0)
+    ? `<div class="sec-label">CATEGORY</div>
+       <div class="tags">${ui.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`
+    : '';
+  pp.innerHTML = `
+    <div class="game-icon-lg">${layout ? layout.icon : ''}</div>
+    ${tagsHtml}
+    ${reviewsHtml}
+  `;
+
+  // 右パネル: ゲーム情報
+  const rows = [];
+
+  if (ui.summary) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">STORY</div>
+      <div class="sec-text">${ui.summary}</div>
+    </div>`);
+  }
+
+  if (ui.venue && ui.venue.display_name) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">開催地</div>
+      <div class="sec-text">${ui.venue.display_name}</div>
+    </div>`);
+  }
+
+  const nextLabel = (ui.next_event && (ui.next_event.label || ui.next_event.date));
+  if (nextLabel) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">NEXT QUEST</div>
+      <div class="next-ev">
+        <span>📅</span>
+        <div class="next-ev-txt">${nextLabel}</div>
+      </div>
+    </div>`);
+  }
+
+  if (ui.latest_news && ui.latest_news.body) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">最新情報</div>
+      <div class="sec-text">${ui.latest_news.body}</div>
+    </div>`);
+  }
+
+  if (ui.recent_update && ui.recent_update.body) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">最近の更新</div>
+      <div class="sec-text">${ui.recent_update.body}</div>
+    </div>`);
+  }
+
+  if (!rows.length) {
+    rows.push(`<div class="sec">
+      <div class="sec-text" style="color:var(--rpg-dim)">詳細情報は準備中です。</div>
+    </div>`);
+  }
+
+  document.getElementById('minfo').innerHTML = rows.join('');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// =====================================================
+//  LORE POPUP — WORLD / HOW TO
+// =====================================================
+const LORE_CONTENT = {
+  world: {
+    title: 'THANATOS GAMES — WORLD LORE',
+    body: `ここは、現実と地続きの冒険が眠るワールドマップだ。
+
+ThanatosGamesが手がけるゲームは、
+ゲームセンターでも、スマホの中でもなく——
+実際の街に、実際の人間と共に存在している。
+
+大阪の路地、奈良の山奥、北海道の雪原、
+そしてセブ島の海岸線。
+
+このマップに刻まれたアイコンひとつひとつが、
+誰かの人生に刺さった「本物の体験」の記録だ。
+
+CLEAREDは、すでに冒険が始まっている証。
+ACTIVEは、今まさに世界が動いている証。
+SEALEDは、まだ誰も知らない扉だ。
+
+あなたはどのクエストを選ぶ？`,
+  },
+  howto: {
+    title: 'HOW TO PLAY',
+    body: `▶ アイコンをクリック
+　各地に配置されたゲームアイコンをクリックすると、
+　そのゲームの詳細クエスト情報が開く。
+
+▶ ステータスを確認
+　CLEARED　→　体験可能。参加者募集中のものもある。
+　ACTIVE　　→　現在開発中。続報を待て。
+　SEALED　　→　まだ世界に解放されていない。
+
+▶ クエストを受ける
+　気になるゲームを見つけたら、
+　詳細ページのリンクからエントリーせよ。
+
+▶ マップは更新される
+　新しいゲームが生まれるたび、
+　このワールドマップにも新たなアイコンが刻まれる。
+　定期的に訪れることを推奨する。`,
+  },
+};
+
+function openLore(key) {
+  const c = LORE_CONTENT[key];
+  document.getElementById('lore-title').textContent = c.title;
+  document.getElementById('lore-body').textContent  = c.body;
+  document.getElementById('lore-overlay').classList.add('open');
+}
+
+function closeLore() {
+  document.getElementById('lore-overlay').classList.remove('open');
+}
+
+document.getElementById('btn-world').addEventListener('click', () => openLore('world'));
+document.getElementById('btn-howto').addEventListener('click', () => openLore('howto'));
+document.getElementById('lore-close').addEventListener('click', closeLore);
+document.getElementById('lore-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('lore-overlay')) closeLore();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeLore(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+{
+  "_meta": {
+    "schema_version": "1.1.0",
+    "created_at": "2026-03-25",
+    "updated_at": "2026-03-25",
+    "description": "ThanatosGames ワールドマップ 公式データスキーマ",
+    "note": "ui_display は公開面。internal_only は Notion 等の内部管理専用。null = 未確認・未入力。"
+  },
+
+  "schema_template": {
+    "game_id": "STRING — 例: gachi_bunkasai（スネークケース・英字）",
+    "ui_display": {
+      "title":      "STRING — ゲームタイトル（正式名称）",
+      "tagline":    "STRING — キャッチコピー（30字以内推奨）",
+      "tags":       ["STRING — ジャンルタグ（例: LARP, 宿泊型, カードゲーム）"],
+      "target":     ["STRING — 参加してほしい人物像（箇条書き、各15字以内）"],
+      "summary":    "STRING — 概要（80字以内。一目で魅力が伝わる文）",
+      "outcome":    "STRING — 体験するとどうなるか（感情・変化を中心に）",
+      "venue": {
+        "display_name": "STRING — 表示名（例: 大阪・淀川河川敷）",
+        "region":       "STRING — 地域タグ（例: 大阪, 北海道, 海外）"
+      },
+      "next_event": {
+        "date":  "STRING | null — 例: 2026-08-00（未定の場合 null）",
+        "label": "STRING | null — 例: 夏開催予定"
+      },
+      "reviews": [
+        {
+          "body":     "STRING — 口コミ本文（60字以内推奨）",
+          "author":   "STRING | null — 例: 20代 社会人",
+          "verified": "BOOLEAN — 実参加者確認済みか"
+        }
+      ],
+      "latest_news": {
+        "date": "STRING | null — 例: 2026-03-20",
+        "body": "STRING | null — 最新情報・告知（100字以内）"
+      },
+      "recent_update": {
+        "date": "STRING | null",
+        "body": "STRING | null — 最近のアップデート"
+      }
+    },
+    "internal_only": {
+      "status":    "ENUM — draft | active | paused | archived",
+      "price": {
+        "amount": "NUMBER | null — 参加費（円）",
+        "note":   "STRING | null — 例: 食材費込み、早割あり"
+      },
+      "capacity": {
+        "min": "NUMBER | null — 最小催行人数",
+        "max": "NUMBER | null — 定員"
+      },
+      "apply_url": "STRING | null — 申込フォームURL",
+      "events": [
+        {
+          "date":      "STRING — 開催日",
+          "venue":     "STRING — 開催場所",
+          "headcount": "NUMBER | null — 参加人数",
+          "revenue":   "NUMBER | null — 売上（円）",
+          "cost":      "NUMBER | null — 経費（円）",
+          "memo":      "STRING | null — 振り返りメモ"
+        }
+      ],
+      "kpi": {
+        "target_headcount_per_year": "NUMBER | null — 年間目標参加者数",
+        "target_revenue_per_event":  "NUMBER | null — 1回あたり目標売上（円）",
+        "notes":                     "STRING | null"
+      },
+      "updates": [
+        {
+          "date": "STRING — 更新日",
+          "body": "STRING — 変更内容メモ"
+        }
+      ]
+    }
+  },
+
+  "games": [
+    {
+      "game_id": "gachi_bunkasai",
+      "ui_display": {
+        "title":   "ガチ文化祭",
+        "tagline": "これはおとなになれない僕たちの、人生をかけた悪あがきだ",
+        "tags":    ["LARP", "宿泊型", "3日間"],
+        "target":  [
+          "あの頃にもどれたら...なんて考えている人"
+        ],
+        "summary": "毎年「文化の日」には、魔法にかかった先にあるのはガチで文化祭をする「ガチ文高等学校」というものが存在するらしい...!! テントサウナ？革命学？先生の裏切り？ハチャメチャな世界のなかで行われる文化祭前夜は、あなたの青春の１ページに不思議な感覚を与えてくれます。",
+        "outcome": "青春とは過去と未来と今の「XXX」であると気づく",
+        "venue": {
+          "display_name": "奈良県下市にある不思議なキャンパス",
+          "region":       "奈良"
+        },
+        "next_event": {
+          "date":  "2026-10-31",
+          "label": "2026年10月31日"
+        },
+        "reviews": [
+          {
+            "body":     "不確かなまま始まる今日は 変わらない、いつも通りー 綺麗に生きれない。 今はそうかも知れないけど、そのガチな想いを 両手いっぱいに抱えて生きよう",
+            "author":   "埼玉大学 / 3年生",
+            "verified": true
+          },
+          {
+            "body":     "この時間が無くなることに、切なくなって、 二度と訪れない瞬間と同級生との時間を、俺はーーー",
+            "author":   "海外ジャーナリスト / 23歳",
+            "verified": true
+          },
+          {
+            "body":     "あらゆる人の感情がぐちゃぐちゃになった3日間。喜怒哀楽に溢れてた",
+            "author":   "大阪教育大学 / 3年生",
+            "verified": true
+          }
+        ],
+        "latest_news": {
+          "date": null,
+          "body": "レストラン雲アルバイトSTAFF募集"
+        },
+        "recent_update": {
+          "date": null,
+          "body": "あれれ～おかしいな。斬島先生が2日目からヘンな武器を持ってるよ？"
+        }
+      },
+      "internal_only": {
+        "status": "active",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": null
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "手入力による確定情報で全項目更新。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "densha_game_japan",
+      "ui_display": {
+        "title":   "電車ゲームJAPAN",
+        "tagline": null,
+        "tags":    ["カードゲーム", "都市型"],
+        "target":  [],
+        "summary": "現実の街・電車網をフィールドにしたカードゲーム。プレイ回数が増えるほど世界観・文脈理解が深まる設計。",
+        "outcome": null,
+        "venue": {
+          "display_name": null,
+          "region":       null
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "draft",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": "KPI・収益モデル・具体ルール・プレイ人数は未確定。弱点は初見の入口の難しさ。"
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "misdo_battle",
+      "ui_display": {
+        "title":   "ミスドバトル",
+        "tagline": null,
+        "tags":    ["エンタメ", "なりきり", "LARP"],
+        "target":  [],
+        "summary": "ドーナツ早食い×キャラなりきりのエンタメイベント。「ドーナツとタコヤキが本来一体だった」神話的世界観を持つLARPの実践の場。世界の分断と再統合が物語軸。",
+        "outcome": null,
+        "venue": {
+          "display_name": null,
+          "region":       null
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "active",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": "ルール・収益モデル・KPIは未設計。ミスドブランドは将来的に自社IPに置換予定。タコデバトルと世界観連動。"
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "natsu_no_nostalgia",
+      "ui_display": {
+        "title":   "夏のノスタルジー",
+        "tagline": null,
+        "tags":    ["LARP", "宿泊型", "宝探し"],
+        "target":  [],
+        "summary": "スローライフ×宝探し×夏休みの宿泊体験型LARP。「僕の夏休み」オマージュ。糸島古民家泊・一週間・宝箱＆ミッション設計。",
+        "outcome": null,
+        "venue": {
+          "display_name": "糸島→奈良（天川村）",
+          "region":       "福岡 / 奈良"
+        },
+        "next_event": {
+          "date":  null,
+          "label": "夏開催予定（糸島→奈良 日本縦断型）"
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": "今年はセブ島OBOGに向け、糸島→奈良（天川村）ヒッチハイク日本縦断型・20名規模での開催を予定。"
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "active",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": 20
+        },
+        "apply_url": null,
+        "events": [
+          {
+            "date":      "2024-00-00",
+            "venue":     "糸島・古民家",
+            "headcount": 7,
+            "revenue":   200000,
+            "cost":      400000,
+            "memo":      "初開催。売上20万・経費40万。"
+          }
+        ],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": "将来的に糸島の土地購入→宿泊拠点化が目標。"
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "fuyu_no_subliminal",
+      "ui_display": {
+        "title":   "冬のサブリミナル",
+        "tagline": null,
+        "tags":    ["LARP", "宿泊型", "冬"],
+        "target":  [],
+        "summary": "夏のノスタルジーと対になる冬版LARP。舞台はニセコ予定。北海道大学院生の起業家と共同で栗山ツアーをテストマーケとして設計中。",
+        "outcome": null,
+        "venue": {
+          "display_name": "北海道・ニセコ（予定）",
+          "region":       "北海道"
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": "北海道大学院生の起業家と共同で栗山ツアーをテストマーケとして設計中。"
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "draft",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": null
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "tokonatsu_no_okami",
+      "ui_display": {
+        "title":   "常夏の狼",
+        "tagline": null,
+        "tags":    ["マーダーミステリー", "周遊型", "海外"],
+        "target":  [],
+        "summary": "セブ島スタディツアーで開催する周遊型マーダーミステリー。",
+        "outcome": null,
+        "venue": {
+          "display_name": "フィリピン・セブ島",
+          "region":       "海外"
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "active",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": null
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "hitchhike_derby",
+      "ui_display": {
+        "title":   "ヒッチハイクダービー",
+        "tagline": null,
+        "tags":    ["競技", "旅", "5日間"],
+        "target":  [],
+        "summary": "大学生旅人向け5日間ヒッチハイク競技。全国にミッションを配置し、ヒッチハイクの上手さを競う。RedBull「Can You Make It」ベンチマーク。",
+        "outcome": null,
+        "venue": {
+          "display_name": "日本全国",
+          "region":       "全国"
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "draft",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": "KPI・収益モデル未確定。"
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "push_the_friend",
+      "ui_display": {
+        "title":   "Push The Friend",
+        "tagline": null,
+        "tags":    [],
+        "target":  [],
+        "summary": null,
+        "outcome": null,
+        "venue": {
+          "display_name": null,
+          "region":       null
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "draft",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": null
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。一次情報未確認のため全項目null。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "furo_kore",
+      "ui_display": {
+        "title":   "ふろこれ！",
+        "tagline": null,
+        "tags":    [],
+        "target":  [],
+        "summary": null,
+        "outcome": null,
+        "venue": {
+          "display_name": null,
+          "region":       null
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "draft",
+        "price": {
+          "amount": null,
+          "note":   null
+        },
+        "capacity": {
+          "min": null,
+          "max": null
+        },
+        "apply_url": null,
+        "events": [],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": null
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。一次情報未確認のため全項目null。"
+          }
+        ]
+      }
+    },
+
+    {
+      "game_id": "gendaibyo_clinic",
+      "ui_display": {
+        "title":   "現代病専門クリニック",
+        "tagline": null,
+        "tags":    ["サウナ", "体験型", "世界観没入"],
+        "target":  [
+          "ハイポテンシャル人材",
+          "シゴデキサラリーマン"
+        ],
+        "summary": "主治医に現代病診断→処方箋→テントサウナ→淀川水風呂→その場で作った二郎のループ。看護師・主治医も現代病というアンチテーゼ世界観。3年目・累計150名以上参加。大阪市内淀川ほとりで20名規模開催。",
+        "outcome": null,
+        "venue": {
+          "display_name": "大阪・淀川河川敷",
+          "region":       "大阪"
+        },
+        "next_event": {
+          "date":  null,
+          "label": null
+        },
+        "reviews": [],
+        "latest_news": {
+          "date": null,
+          "body": null
+        },
+        "recent_update": {
+          "date": null,
+          "body": null
+        }
+      },
+      "internal_only": {
+        "status": "active",
+        "price": {
+          "amount": null,
+          "note":   "「サウナ後ラーメン」「サウナ後二郎」ブランド含む"
+        },
+        "capacity": {
+          "min": null,
+          "max": 20
+        },
+        "apply_url": null,
+        "events": [
+          {
+            "date":      null,
+            "venue":     "大阪・淀川河川敷",
+            "headcount": null,
+            "revenue":   null,
+            "cost":      null,
+            "memo":      "3年目・累計150名以上参加。20名規模で開催継続中。"
+          }
+        ],
+        "kpi": {
+          "target_headcount_per_year": null,
+          "target_revenue_per_event":  null,
+          "notes": null
+        },
+        "updates": [
+          {
+            "date": "2026-03-25",
+            "body": "スキーマ登録。要確認項目はnullで保留。"
+          }
+        ]
+      }
+    }
+  ]
+}
