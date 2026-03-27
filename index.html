@@ -1527,7 +1527,7 @@ document.addEventListener('keydown', e => {
 
 // ===== ABOUT POPUP =====
 
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const TRIGGER_SELECTOR = '.world-title';
 
   const overlay = document.getElementById('about-overlay');
@@ -1558,7 +1558,7 @@ document.addEventListener('keydown', e => {
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeAbout();
   });
-})();
+});
 
 // ===== /ABOUT POPUP =====
 </script>
