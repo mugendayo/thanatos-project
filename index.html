@@ -100,6 +100,7 @@ html, body {
   color: var(--rpg-yellow);
   letter-spacing: .12em;
   text-shadow: 2px 2px 0 #000033;
+  pointer-events: all;
 }
 .world-sub {
   font-family: 'Press Start 2P', monospace;
@@ -516,6 +517,331 @@ html, body {
   #legend { display: none; }
   .m-title { font-size: 10px; }
 }
+
+/* ===== ABOUT POPUP ===== */
+
+#about-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 8, 4, 0.82);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+}
+
+#about-modal {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  background: #f5f0e0;
+  border: 2px solid #a08050;
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  color: #1a1208;
+  margin: auto;
+}
+
+/* dotted paper texture */
+#about-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(100,70,20,0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.about-inner {
+  position: relative;
+  z-index: 1;
+  padding: 40px 36px 48px;
+  overflow-y: auto;
+  max-height: calc(100vh - 100px);
+}
+
+/* close button */
+#about-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  background: #1a1208;
+  color: #f5f0e0;
+  border: none;
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#about-close:hover { background: #8b4513; }
+
+/* hero */
+.about-hero {
+  text-align: center;
+  border: 2px solid #a08050;
+  background: #ede5cc;
+  padding: 32px 24px;
+  margin-bottom: 36px;
+  position: relative;
+}
+
+.about-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: #8b4513;
+  margin-bottom: 14px;
+}
+
+.about-title {
+  font-size: clamp(20px, 4vw, 32px);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: #1a1208;
+  margin-bottom: 12px;
+}
+
+.about-tagline {
+  font-size: 13px;
+  color: #3d2e14;
+  letter-spacing: 0.06em;
+}
+
+/* sections */
+.about-section {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px dashed #c8a870;
+}
+
+.about-section:last-of-type { border-bottom: none; }
+
+.about-section-label {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #a08050;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* vision */
+.about-vision-text {
+  font-size: 13px;
+  text-align: center;
+  color: #8b4513;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+
+.about-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.about-metric {
+  text-align: center;
+  border: 1px solid #c8a870;
+  background: #f5f0e0;
+  padding: 14px 8px;
+}
+
+.about-metric-val {
+  display: block;
+  font-size: clamp(18px, 3vw, 24px);
+  color: #1a1208;
+  margin-bottom: 4px;
+}
+
+.about-metric-lbl {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #8b4513;
+  text-transform: uppercase;
+}
+
+/* larp */
+.about-larp-box {
+  display: flex;
+  gap: 16px;
+  border: 1px solid #c8a870;
+  padding: 18px 20px;
+  background: #f5f0e0;
+  align-items: flex-start;
+}
+
+.about-larp-badge {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #f5f0e0;
+  background: #8b4513;
+  padding: 5px 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.about-larp-title {
+  font-size: 14px;
+  color: #1a1208;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.about-larp-body {
+  font-size: 12px;
+  line-height: 1.85;
+  color: #3d2e14;
+}
+
+/* timeline */
+.about-timeline { display: flex; flex-direction: column; gap: 0; }
+
+.about-tl-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  padding-bottom: 20px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e8e0c8;
+}
+
+.about-tl-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.about-tl-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.about-tl-era {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #8b4513;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.about-tl-title {
+  font-size: 13px;
+  color: #1a1208;
+  margin-bottom: 5px;
+  line-height: 1.5;
+}
+
+.about-tl-body {
+  font-size: 12px;
+  line-height: 1.85;
+  color: #3d2e14;
+}
+
+/* concept */
+.about-concept-lead {
+  font-size: 18px;
+  color: #1a1208;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.about-concept-body {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #3d2e14;
+  margin-bottom: 16px;
+}
+
+.about-sento-box {
+  border-left: 3px solid #a08050;
+  padding: 12px 16px;
+  background: #ede5cc;
+}
+
+.about-sento-title {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: #8b4513;
+  margin-bottom: 8px;
+}
+
+.about-sento-body {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #3d2e14;
+}
+
+/* effects */
+.about-effects { display: flex; flex-direction: column; gap: 0; }
+
+.about-effect {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  border-bottom: 1px solid #e8e0c8;
+  padding: 14px 0;
+}
+
+.about-effect:last-child { border-bottom: none; }
+
+.about-effect-num {
+  font-size: 18px;
+  color: #c8a870;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.about-effect-title {
+  font-size: 13px;
+  color: #1a1208;
+  margin-bottom: 5px;
+}
+
+.about-effect-body {
+  font-size: 12px;
+  line-height: 1.85;
+  color: #3d2e14;
+}
+
+/* stamp */
+.about-stamp {
+  text-align: center;
+  padding: 28px 16px 8px;
+}
+
+.about-stamp-inner {
+  display: inline-block;
+  border: 3px double #a08050;
+  padding: 16px 32px;
+}
+
+.about-stamp-main {
+  font-size: clamp(13px, 2.5vw, 16px);
+  letter-spacing: 0.06em;
+  color: #1a1208;
+  margin-bottom: 6px;
+}
+
+.about-stamp-sub {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: #8b4513;
+}
+
+/* mobile */
+@media (max-width: 480px) {
+  .about-inner { padding: 28px 20px 36px; }
+  .about-metrics { grid-template-columns: 1fr; }
+  .about-larp-box { flex-direction: column; }
+}
+
+/* ===== /ABOUT POPUP ===== */
 </style>
 </head>
 <body>
@@ -1198,6 +1524,201 @@ document.getElementById('lore-overlay').addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeLore(); }
 });
+
+// ===== ABOUT POPUP =====
+
+(function () {
+  const TRIGGER_SELECTOR = '.world-title';
+
+  const overlay = document.getElementById('about-overlay');
+  const closeBtn = document.getElementById('about-close');
+
+  function openAbout() {
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAbout() {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  const trigger = document.querySelector(TRIGGER_SELECTOR);
+  if (trigger) {
+    trigger.style.cursor = 'pointer';
+    trigger.addEventListener('click', openAbout);
+  }
+
+  closeBtn.addEventListener('click', closeAbout);
+
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeAbout();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAbout();
+  });
+})();
+
+// ===== /ABOUT POPUP =====
 </script>
+
+<!-- ========== ABOUT POPUP ========== -->
+<div id="about-overlay" style="display:none;">
+  <div id="about-modal">
+
+    <button id="about-close">✕</button>
+
+    <div class="about-inner">
+
+      <!-- HEADER -->
+      <div class="about-hero">
+        <p class="about-eyebrow">★ THANATOS GAMES ★</p>
+        <h2 class="about-title">リアルとゲームの境界線を<br>あいまいにする</h2>
+        <p class="about-tagline">死ぬまでの暇つぶしに、リアルな遊びを。</p>
+      </div>
+
+      <!-- VISION -->
+      <div class="about-section">
+        <p class="about-section-label">— VISION 2035 —</p>
+        <p class="about-vision-text">2035年までに、面白がらせるゲームの経営にコミットします。</p>
+        <div class="about-metrics">
+          <div class="about-metric">
+            <span class="about-metric-val">2.5億</span>
+            <span class="about-metric-lbl">売上目標</span>
+          </div>
+          <div class="about-metric">
+            <span class="about-metric-val">1億</span>
+            <span class="about-metric-lbl">利益目標</span>
+          </div>
+          <div class="about-metric">
+            <span class="about-metric-val">80</span>
+            <span class="about-metric-lbl">タイトル数</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LARP -->
+      <div class="about-section">
+        <p class="about-section-label">— WHAT WE DO —</p>
+        <div class="about-larp-box">
+          <span class="about-larp-badge">LARP</span>
+          <div>
+            <p class="about-larp-title">Live Action Role Playing</p>
+            <p class="about-larp-body">参加者がゲームの登場人物になりきり、現実世界で作られた物語を遊ぶ体験型エンタメ。舞台は、あなたの日常のすぐ隣にある。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORIGIN -->
+      <div class="about-section">
+        <p class="about-section-label">— ORIGIN STORY —</p>
+        <div class="about-timeline">
+
+          <div class="about-tl-item">
+            <span class="about-tl-icon">🎮</span>
+            <div>
+              <p class="about-tl-era">幼少期</p>
+              <p class="about-tl-title">ゲームセンターで「人とつながる」遊びを覚えた</p>
+              <p class="about-tl-body">8歳でゲーセンに通い、遊びが人間関係をつくる場になると知った。</p>
+            </div>
+          </div>
+
+          <div class="about-tl-item">
+            <span class="about-tl-icon">🥁</span>
+            <div>
+              <p class="about-tl-era">中高生</p>
+              <p class="about-tl-title">ゲームに没入し、「現実のゲーム化」へ意識が向く</p>
+              <p class="about-tl-body">太鼓の達人や水曜どうでしょうのように、リアル×遊びの世界に惹かれた。</p>
+            </div>
+          </div>
+
+          <div class="about-tl-item">
+            <span class="about-tl-icon">🚶</span>
+            <div>
+              <p class="about-tl-era">大学生</p>
+              <p class="about-tl-title">日本一周で「旅をゲームにする」感覚を掴む</p>
+              <p class="about-tl-body">目的・ルール・偶然性を伴った旅が、リアルな冒険ゲームのように感じられた。</p>
+            </div>
+          </div>
+
+          <div class="about-tl-item">
+            <span class="about-tl-icon">🧩</span>
+            <div>
+              <p class="about-tl-era">起業後</p>
+              <p class="about-tl-title">「国づくり」＝現実を設計するゲームを始める</p>
+              <p class="about-tl-body">事業やコミュニティをつくる中で、現実のルールすら"遊び化"できると体感。</p>
+            </div>
+          </div>
+
+          <div class="about-tl-item">
+            <span class="about-tl-icon">🕹️</span>
+            <div>
+              <p class="about-tl-era">現在</p>
+              <p class="about-tl-title">「ゲームの提供者」＝店員としての立場に戻る</p>
+              <p class="about-tl-body">自分がつくるゲームで、他人が遊ぶ場所を用意する。それが今の理想。ThanatosGamesは、死ぬまでの暇つぶしに"リアルな遊び"を提供する会社です。</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CONCEPT -->
+      <div class="about-section">
+        <p class="about-section-label">— CONCEPT —</p>
+        <p class="about-concept-lead">人生ゲームを面白がらせる。</p>
+        <p class="about-concept-body">
+          現代人が抱える「何かをしなければならない」という強迫観念。SNSの普及や効率重視の社会構造が、「もっと成果を」「もっと楽しみを」という無意識のプレッシャーを生み出し、ストレス・不安・燃え尽き症候群という「現代病」を引き起こしています。<br><br>
+          競争や結果を求めず、純粋に遊ぶことを楽しめる体験を——<strong>現代病の劇薬</strong>としてデザインします。
+        </p>
+        <div class="about-sento-box">
+          <p class="about-sento-title">銭湯の哲学</p>
+          <p class="about-sento-body">
+            ただ湯に浸かるだけで、身体的な疲れだけでなく、心の緊張も解かれていく。ThanatosGamesは、この銭湯の哲学をゲームという形でデザインします。<br><br>
+            <em>「ただ楽しいからやる」</em>——このシンプルな動機がすべてです。
+          </p>
+        </div>
+      </div>
+
+      <!-- EFFECTS -->
+      <div class="about-section">
+        <p class="about-section-label">— EFFECTS —</p>
+        <div class="about-effects">
+          <div class="about-effect">
+            <span class="about-effect-num">I</span>
+            <div>
+              <p class="about-effect-title">強迫観念からの解放</p>
+              <p class="about-effect-body">「勝たなくても良い」「意味がなくても良い」という哲学が、ストレスを解消し、日常の重圧を忘れさせます。</p>
+            </div>
+          </div>
+          <div class="about-effect">
+            <span class="about-effect-num">II</span>
+            <div>
+              <p class="about-effect-title">癒しと没頭</p>
+              <p class="about-effect-body">銭湯の湯に浸かるように、ThanatosGamesはユーザーをゲームという「湯」の中に没頭させます。精神的なメンテナンスの場となります。</p>
+            </div>
+          </div>
+          <div class="about-effect">
+            <span class="about-effect-num">III</span>
+            <div>
+              <p class="about-effect-title">新しい価値観の創出</p>
+              <p class="about-effect-body">「何もしないこと」や「無駄に見える行為」に価値を見出すことで、人生観をポジティブに変えるきっかけを提供します。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLOSING STAMP -->
+      <div class="about-stamp">
+        <div class="about-stamp-inner">
+          <p class="about-stamp-main">どうせ人生は、死ぬまでの暇つぶし。</p>
+          <p class="about-stamp-sub">— THANATOS GAMES —</p>
+        </div>
+      </div>
+
+    </div><!-- /.about-inner -->
+  </div><!-- /#about-modal -->
+</div><!-- /#about-overlay -->
+<!-- ========== /ABOUT POPUP ========== -->
 </body>
 </html>
