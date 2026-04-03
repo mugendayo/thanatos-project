@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title id="page-title">FIELD — THANATOS GAMES WORLD</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===== VARIABLES ===== */
+:root {
+  --rpg-bg:       #00001e;
+  --rpg-border:   #8888ff;
+  --rpg-text:     #ffffff;
+  --rpg-yellow:   #ffdd00;
+  --rpg-dim:      #8888bb;
+  --active-green: #00ee55;
+  --active-red:   #ee2200;
+  --menu-bg:      rgba(0, 0, 28, 0.94);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #1a6fad;
+  font-family: 'Noto Serif JP', serif;
+  cursor: default;
+  user-select: none;
+}
+
+#world {
+  position: relative;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== OCEAN / WAVE BASE ===== */
+#ocean {
+  position: absolute; inset: 0;
+  background: #1a6fad;
+}
+.wave-layer {
+  position: absolute; inset: -20%;
+  background: repeating-linear-gradient(
+    -20deg,
+    transparent 0px, transparent 22px,
+    rgba(100,200,255,0.08) 22px, rgba(100,200,255,0.08) 24px
+  );
+  animation: driftWave 14s ease-in-out infinite;
+}
+.wave-layer:nth-child(2) {
+  opacity: .50;
+  animation-duration: 22s;
+  animation-direction: reverse;
+  background: repeating-linear-gradient(
+    160deg,
+    transparent 0px, transparent 30px,
+    rgba(140,220,255,0.06) 30px, rgba(140,220,255,0.06) 32px
+  );
+}
+@keyframes driftWave {
+  0%,100% { transform: translate(0,0); }
+  50%      { transform: translate(12px, 8px); }
+}
+
+/* ===== FIELD SVG ===== */
+#field-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+
+/* ===== HUD TOP ===== */
+#hud-top {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 52px;
+  background: var(--menu-bg);
+  border-bottom: 3px solid var(--rpg-border);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20; pointer-events: none;
+}
+.world-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px, 1.3vw, 12px);
+  color: var(--rpg-yellow);
+  letter-spacing: .10em;
+  text-shadow: 2px 2px 0 #000033;
+  text-align: center;
+}
+.world-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--rpg-dim);
+  text-align: center;
+  margin-top: 5px;
+  letter-spacing: .1em;
+}
+
+/* ===== HUD BOTTOM ===== */
+#hud-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 38px;
+  background: var(--menu-bg);
+  border-top: 3px solid var(--rpg-border);
+  display: flex; align-items: center; justify-content: center; gap: 44px;
+  z-index: 20; pointer-events: none;
+}
+.hint {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--rpg-dim);
+  letter-spacing: .06em;
+}
+
+/* ===== LEFT MENU ===== */
+#left-menu {
+  position: absolute; top: 66px; left: 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 20;
+}
+.menu-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--rpg-yellow);
+  background: var(--menu-bg);
+  border: 2px solid var(--rpg-border);
+  padding: 9px 13px;
+  cursor: pointer;
+  letter-spacing: .10em;
+  text-align: left;
+  transition: border-color .15s, color .15s, box-shadow .15s;
+  box-shadow: 0 0 4px rgba(136,136,255,.20);
+}
+.menu-btn:hover {
+  border-color: #00bcd4;
+  color: #00bcd4;
+  box-shadow: 0 0 10px rgba(0,188,212,.35);
+}
+
+/* ===== FIELD ICON (TOP) ===== */
+#field-marker {
+  position: absolute;
+  left: 50%;
+  top: 58px;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+#field-marker:hover .field-icon-label {
+  border-color: #00bcd4;
+  color: #00bcd4;
+}
+.field-icon {
+  font-size: 34px;
+  line-height: 1;
+  display: block;
+  filter: drop-shadow(2px 2px 0 rgba(0,0,0,.5));
+}
+.field-icon-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--rpg-text);
+  background: var(--menu-bg);
+  border: 2px solid var(--rpg-border);
+  padding: 4px 8px;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+  letter-spacing: .05em;
+}
+
+/* ===== CHARACTERS ===== */
+#characters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+}
+.character-sprite {
+  position: absolute;
+  pointer-events: all;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+.character-sprite img {
+  display: block;
+  width: 260px;
+  max-width: 28vw;
+  filter: drop-shadow(4px 8px 10px rgba(0,0,0,0.65));
+  animation: charIdle 4s ease-in-out infinite;
+  transition: filter 0.15s, transform 0.15s;
+  user-select: none;
+}
+.character-sprite:hover img {
+  filter: drop-shadow(4px 8px 18px rgba(0,188,212,0.7));
+  transform: scale(1.04) translateY(-4px);
+}
+@keyframes charIdle {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.char-hint {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  color: #ffdd00;
+  text-shadow: 2px 2px 0 #000, 0 0 10px rgba(255,200,0,0.6);
+  animation: hintBounce 0.9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hintBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(-6px); }
+}
+.char-hint.done { display: none; }
+
+/* ===== DIALOGUE BOX ===== */
+#dialogue-box {
+  position: fixed;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, 92vw);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: translateX(-50%) translateY(10px);
+}
+#dialogue-box.open {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(-50%) translateY(0);
+}
+.dlg-inner {
+  background: rgba(4, 4, 28, 0.97);
+  border: 2px solid #00bcd4;
+  border-left: 4px solid #00bcd4;
+  outline: 1px solid rgba(0,188,212,0.2);
+  outline-offset: 3px;
+  box-shadow: 0 0 28px rgba(0,188,212,0.18), 0 10px 40px rgba(0,0,0,0.8);
+  padding: 14px 44px 14px 18px;
+  position: relative;
+  min-height: 80px;
+}
+.dlg-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #f5a623;
+  margin-bottom: 10px;
+  letter-spacing: .08em;
+  display: flex; align-items: center; gap: 6px;
+}
+.dlg-name::before { content: '▶'; color: #00bcd4; font-size: 7px; }
+.dlg-text {
+  font-size: 14px;
+  color: #e8e8ff;
+  line-height: 2.0;
+  min-height: 32px;
+  font-family: 'Noto Serif JP', serif;
+  white-space: pre-line;
+}
+.dlg-next {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #00bcd4;
+  opacity: 0;
+  animation: dlgNextBlink 0.75s step-end infinite;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.dlg-next.visible { opacity: 1; }
+@keyframes dlgNextBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.dlg-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: none;
+  border: 1px solid rgba(0,188,212,.4);
+  color: #00bcd4;
+  width: 24px; height: 24px;
+  cursor: pointer; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.dlg-close:hover { background: rgba(0,188,212,.18); }
+
+/* ===== MODAL OVERLAY ===== */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,20,.82);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+#overlay.open { opacity: 1; pointer-events: all; }
+
+/* ===== MODAL BOX ===== */
+#modal {
+  width: min(900px, 95vw);
+  max-height: 80vh;
+  background: rgba(10,10,40,0.92);
+  border: 1px solid rgba(0,188,212,0.3);
+  border-left: 3px solid #00bcd4;
+  box-shadow:
+    0 24px 64px rgba(0,0,0,.75),
+    0 0 40px rgba(0,188,212,.12),
+    inset 0 0 60px rgba(0,10,40,.30);
+  display: flex; flex-direction: column;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform .25s ease-out, opacity .25s ease-out;
+  overflow: hidden;
+  position: relative;
+}
+#overlay.open #modal {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ===== MODAL HEADER ===== */
+.m-head {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(0,188,212,0.25);
+  background: linear-gradient(135deg, rgba(0,188,212,.08) 0%, rgba(10,10,40,0) 60%);
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.m-head-text { flex: 1; }
+.m-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(10px, 1.8vw, 16px);
+  color: #f5a623;
+  margin-bottom: 8px;
+  line-height: 1.6;
+  letter-spacing: .04em;
+}
+.m-tagline {
+  font-size: 12px;
+  color: rgba(0,188,212,.80);
+  line-height: 1.7;
+}
+
+/* ===== STATUS BADGE ===== */
+.badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; padding: 5px 10px;
+  border: 1px solid;
+  white-space: nowrap; flex-shrink: 0; margin-top: 3px;
+}
+.badge.c {
+  color: #ffffff;
+  border-color: #00bcd4;
+  background: rgba(0,188,212,.12);
+  box-shadow: 0 0 8px rgba(0,188,212,.30);
+}
+.badge.a {
+  color: #f5a623;
+  border-color: #f5a623;
+  background: rgba(245,166,35,.10);
+  box-shadow: 0 0 8px rgba(245,166,35,.30);
+  animation: badgePulse .9s ease-in-out infinite;
+}
+.badge.l { color: #556677; border-color: #334455; }
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .55; }
+}
+
+/* ===== CLOSE BUTTON ===== */
+.btn-close {
+  background: none;
+  border: 1px solid rgba(0,188,212,.5);
+  color: #00bcd4;
+  width: 30px; height: 30px;
+  cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s; flex-shrink: 0;
+}
+.btn-close:hover {
+  background: rgba(0,188,212,.15);
+  border-color: #00bcd4;
+  box-shadow: 0 0 10px rgba(0,188,212,.35);
+}
+
+/* ===== MODAL BODY ===== */
+.m-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+/* ===== LEFT PANEL ===== */
+.m-photos {
+  width: 36%; flex-shrink: 0;
+  border-right: 1px solid rgba(0,188,212,.22);
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px 14px; overflow-y: auto;
+  background: rgba(0,188,212,.03);
+}
+.game-icon-lg { font-size: 56px; text-align: center; padding: 12px 0 6px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px; padding: 4px 9px;
+  border: 1px solid rgba(0,188,212,.40);
+  color: #e8e8ff;
+  background: rgba(0,188,212,.08);
+}
+.review-card {
+  background: rgba(0,188,212,.04);
+  border: 1px solid rgba(0,188,212,.18);
+  border-left: 3px solid #00bcd4;
+  padding: 10px 12px; margin-bottom: 6px;
+}
+.review-body { font-size: 11px; color: #e8e8ff; line-height: 1.90; font-style: italic; }
+.review-author {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px; color: rgba(0,188,212,.60);
+  margin-top: 6px; text-align: right;
+}
+
+/* ===== RIGHT PANEL ===== */
+.m-info {
+  flex: 1; padding: 16px 18px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sec {
+  padding: 11px 14px;
+  border: 1px solid rgba(0,188,212,.22);
+  border-left: 3px solid #00bcd4;
+  background: rgba(0,188,212,.04);
+}
+.sec-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: #00bcd4;
+  letter-spacing: .12em; margin-bottom: 9px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 7px;
+}
+.sec-label::before { content: '▶'; color: #f5a623; font-size: 6px; }
+.sec-text { font-size: 12px; color: #e8e8ff; line-height: 1.95; }
+.next-ev {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(245,166,35,.07);
+  border: 1px solid rgba(245,166,35,.40);
+  padding: 10px 13px;
+  animation: nextEvPulse 2.4s ease-in-out infinite;
+}
+@keyframes nextEvPulse {
+  0%, 100% { box-shadow: 0 0 6px  rgba(245,166,35,.15); }
+  50%       { box-shadow: 0 0 18px rgba(245,166,35,.38); }
+}
+.next-ev-txt {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: #f5a623; line-height: 1.9;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(10,10,40,.8); }
+::-webkit-scrollbar-thumb { background: rgba(0,188,212,.45); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,188,212,.75); }
+
+/* ===== FIELD ENTRY ANIMATION ===== */
+#entry-overlay {
+  position: fixed; inset: 0;
+  background: #000010;
+  z-index: 200;
+  animation: entryFadeOut 0.55s cubic-bezier(0.4, 0, 0.6, 1) 0.05s forwards;
+}
+@keyframes entryFadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
+}
+
+@keyframes worldReveal {
+  0%   { transform: scale(1.07); }
+  100% { transform: scale(1.0); }
+}
+#world {
+  animation: worldReveal 0.6s cubic-bezier(0.25, 0, 0.3, 1) 0.05s both;
+}
+/* ===== /FIELD ENTRY ANIMATION ===== */
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 580px) {
+  .m-body { flex-direction: column; }
+  .m-photos {
+    width: 100%; border-right: none;
+    border-bottom: 1px solid rgba(0,188,212,.22);
+    max-height: 180px;
+  }
+  .m-title { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div id="world">
+
+  <!-- Ocean base -->
+  <div id="ocean">
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+
+  <!-- Field SVG (injected by JS) -->
+  <svg id="field-svg" viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid slice">
+    <defs id="field-defs"></defs>
+    <g id="field-scene"></g>
+  </svg>
+
+  <!-- HUD top -->
+  <div id="hud-top">
+    <div>
+      <div class="world-title" id="field-title">LOADING...</div>
+      <div class="world-sub">THANATOS GAMES — FIELD</div>
+    </div>
+  </div>
+
+  <!-- HUD bottom -->
+  <div id="hud-bottom">
+    <span class="hint">▶ キャラをクリック → 話しかける</span>
+    <span class="hint">ESC → 閉じる</span>
+  </div>
+
+  <!-- Left menu -->
+  <div id="left-menu">
+    <button class="menu-btn" id="btn-back">← WORLD</button>
+  </div>
+
+  <!-- Entry transition overlay -->
+  <div id="entry-overlay"></div>
+
+  <!-- Field icon (top, display only) -->
+  <div id="field-marker">
+    <div class="field-icon" id="field-icon-emoji"></div>
+    <div class="field-icon-label" id="field-icon-label"></div>
+  </div>
+
+  <!-- Characters -->
+  <div id="characters"></div>
+
+</div>
+
+<!-- ========== DIALOGUE BOX ========== -->
+<div id="dialogue-box">
+  <div class="dlg-inner">
+    <div class="dlg-name" id="dlg-name"></div>
+    <div class="dlg-text" id="dlg-text"></div>
+    <div class="dlg-next" id="dlg-next">▼ CLICK</div>
+    <button class="dlg-close" id="dlg-close">✕</button>
+  </div>
+</div>
+
+<!-- ========== MODAL ========== -->
+<div id="overlay">
+  <div id="modal">
+    <div class="m-head">
+      <div class="m-head-text">
+        <div class="m-title"   id="mtitle"></div>
+        <div class="m-tagline" id="mtagline"></div>
+      </div>
+      <div class="badge" id="mbadge"></div>
+      <button class="btn-close" id="mclose">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="m-photos" id="mphotos"></div>
+      <div class="m-info"   id="minfo"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+//  LAYOUT & STATUS (index.html と同じ定義)
+// =====================================================
+const MAP_LAYOUT = {
+  gachi_bunkasai:     { x: 61.5, y: 82.4, icon: '🏫', status: 'archived' },
+  densha_game_japan:  { x: 54,   y: 67.9, icon: '🚃', status: 'active'   },
+  misdo_battle:       { x: 57.5, y: 75.3, icon: '🍩', status: 'archived' },
+  natsu_no_nostalgia: { x: 14,   y: 50.5, icon: '⛩️' },
+  fuyu_no_subliminal: { x: 67,   y: 24,   icon: '🏔️' },
+  tokonatsu_no_okami: { x:  7,   y: 91,   icon: '🐺', status: 'archived' },
+  hitchhike_derby:    { x: 35,   y: 75,   icon: '🛣️' },
+  push_the_friend:    { x: 45,   y: 63.9, icon: '👊', status: 'active'   },
+  furo_kore:          { x: 75,   y: 46,   icon: '♨️' },
+  gendaibyo_clinic:   { x: 50,   y: 58.8, icon: '💊', status: 'archived' },
+};
+
+const STATUS_UI = {
+  active:   { label: '⚔ ACTIVE',   cls: 'a' },
+  draft:    { label: '🔒 SEALED',  cls: 'l' },
+  paused:   { label: '🔒 SEALED',  cls: 'l' },
+  archived: { label: '★ CLEARED', cls: 'c' },
+};
+
+// =====================================================
+//  FIELD THEMES — ゲームごとの背景SVGシーン
+// =====================================================
+const FIELD_THEMES = {
+
+  // 🏫 文化祭 — 夕暮れの校庭
+  gachi_bunkasai: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#0f0620"/>
+        <stop offset="55%"  stop-color="#5c1a68"/>
+        <stop offset="100%" stop-color="#c84428"/>
+      </linearGradient>
+      <linearGradient id="fg-ground" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#1e3810"/>
+        <stop offset="100%" stop-color="#0f1e08"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <circle cx="840" cy="90" r="44" fill="#fff8dc" opacity="0.88"/>
+      <circle cx="858" cy="78" r="38" fill="#5c1a68" opacity="0.55"/>
+      <circle cx="120" cy="50"  r="2"   fill="white" opacity="0.7"/>
+      <circle cx="300" cy="30"  r="1.5" fill="white" opacity="0.5"/>
+      <circle cx="450" cy="70"  r="2"   fill="white" opacity="0.8"/>
+      <circle cx="550" cy="20"  r="1.5" fill="white" opacity="0.6"/>
+      <circle cx="700" cy="60"  r="2"   fill="white" opacity="0.5"/>
+      <rect x="580" y="170" width="360" height="250" fill="#08061a"/>
+      <rect x="580" y="148" width="75"  height="42"  fill="#08061a"/>
+      <rect x="700" y="148" width="75"  height="42"  fill="#08061a"/>
+      <rect x="600" y="192" width="24" height="18" fill="#ffdd44" opacity="0.85"/>
+      <rect x="638" y="192" width="24" height="18" fill="#ffcc22" opacity="0.70"/>
+      <rect x="676" y="192" width="24" height="18" fill="#ffdd44" opacity="0.90"/>
+      <rect x="714" y="192" width="24" height="18" fill="#ffdd44" opacity="0.75"/>
+      <rect x="752" y="192" width="24" height="18" fill="#ff8844" opacity="0.80"/>
+      <rect x="790" y="192" width="24" height="18" fill="#ffdd44" opacity="0.65"/>
+      <rect x="828" y="192" width="24" height="18" fill="#ffdd44" opacity="0.88"/>
+      <rect x="600" y="232" width="24" height="18" fill="#ffcc22" opacity="0.60"/>
+      <rect x="638" y="232" width="24" height="18" fill="#ffdd44" opacity="0.85"/>
+      <rect x="676" y="232" width="24" height="18" fill="#ffdd44" opacity="0.90"/>
+      <rect x="752" y="232" width="24" height="18" fill="#ff8844" opacity="0.80"/>
+      <rect x="828" y="232" width="24" height="18" fill="#ffdd44" opacity="0.70"/>
+      <rect x="780" y="380" width="80" height="40" fill="#08061a"/>
+      <rect x="760" y="360" width="10" height="60" fill="#08061a"/>
+      <rect x="870" y="360" width="10" height="60" fill="#08061a"/>
+      <path d="M 60 280 Q 200 265 350 275 Q 500 285 640 268" stroke="#dd2255" stroke-width="3" fill="none" opacity="0.9"/>
+      <ellipse cx="130" cy="290" rx="11" ry="15" fill="#ff3322" opacity="0.85"/>
+      <line x1="130" y1="275" x2="130" y2="268" stroke="#aa1100" stroke-width="2"/>
+      <ellipse cx="250" cy="278" rx="11" ry="15" fill="#ffcc00" opacity="0.85"/>
+      <line x1="250" y1="263" x2="250" y2="256" stroke="#cc9900" stroke-width="2"/>
+      <ellipse cx="380" cy="285" rx="11" ry="15" fill="#ff3322" opacity="0.85"/>
+      <line x1="380" y1="270" x2="380" y2="263" stroke="#aa1100" stroke-width="2"/>
+      <ellipse cx="510" cy="272" rx="11" ry="15" fill="#ffcc00" opacity="0.85"/>
+      <line x1="510" y1="257" x2="510" y2="250" stroke="#cc9900" stroke-width="2"/>
+      <rect x="50"  y="340" width="20" height="80" fill="#2a1a0a"/>
+      <circle cx="60"  cy="330" r="38" fill="#18420e"/>
+      <rect x="110" y="355" width="18" height="65" fill="#2a1a0a"/>
+      <circle cx="119" cy="345" r="30" fill="#1e5212"/>
+      <rect x="0" y="420" width="1000" height="260" fill="url(#fg-ground)"/>
+      <ellipse cx="500" cy="450" rx="300" ry="40" fill="#2a4a18" opacity="0.4"/>`,
+  },
+
+  // 🚃 電車ゲーム — 夜明けのホーム
+  densha_game_japan: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#050d1a"/>
+        <stop offset="45%"  stop-color="#0a2a50"/>
+        <stop offset="80%"  stop-color="#1a6090"/>
+        <stop offset="100%" stop-color="#60a8d0"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <circle cx="80"  cy="40"  r="2"   fill="white" opacity="0.7"/>
+      <circle cx="180" cy="25"  r="1.5" fill="white" opacity="0.5"/>
+      <circle cx="320" cy="55"  r="2"   fill="white" opacity="0.8"/>
+      <circle cx="480" cy="18"  r="1.5" fill="white" opacity="0.6"/>
+      <circle cx="650" cy="48"  r="2"   fill="white" opacity="0.5"/>
+      <circle cx="820" cy="30"  r="1.5" fill="white" opacity="0.7"/>
+      <ellipse cx="900" cy="380" rx="200" ry="100" fill="#ff8c22" opacity="0.22"/>
+      <polygon points="0,400 150,220 300,310 480,180 640,260 800,200 1000,270 1000,400" fill="#0a1828"/>
+      <rect x="150" y="300" width="700" height="16" fill="#1a2840"/>
+      <rect x="130" y="314" width="10"  height="86" fill="#1a2840"/>
+      <rect x="860" y="314" width="10"  height="86" fill="#1a2840"/>
+      <rect x="100" y="380" width="800" height="40" fill="#2a2a3a"/>
+      <rect x="100" y="378" width="800" height="7"  fill="#ffdd00"/>
+      <rect x="370" y="310" width="260" height="36" fill="#001a60"/>
+      <rect x="370" y="310" width="260" height="36" fill="none" stroke="#4477cc" stroke-width="2"/>
+      <text x="500" y="334" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="9" fill="#ffffff">NAMBA STN</text>
+      <line x1="0" y1="340" x2="1000" y2="340" stroke="#778899" stroke-width="1.5" opacity="0.6"/>
+      <line x1="0" y1="332" x2="1000" y2="332" stroke="#778899" stroke-width="1"   opacity="0.4"/>
+      <line x1="200" y1="300" x2="200" y2="380" stroke="#445566" stroke-width="4"/>
+      <line x1="500" y1="300" x2="500" y2="380" stroke="#445566" stroke-width="4"/>
+      <line x1="800" y1="300" x2="800" y2="380" stroke="#445566" stroke-width="4"/>
+      <rect x="0"   y="420" width="1000" height="260" fill="#2a2a36"/>
+      <rect x="0"   y="432" width="1000" height="10" fill="#778888"/>
+      <rect x="0"   y="454" width="1000" height="10" fill="#778888"/>
+      <rect x="20"  y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="80"  y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="140" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="200" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="260" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="320" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="380" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="440" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="500" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="560" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="620" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="680" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="740" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="800" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="860" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>
+      <rect x="920" y="428" width="28" height="44" fill="#4a3a28" opacity="0.8"/>`,
+  },
+
+  // 🍩 ミスドバトル — 深夜の街
+  misdo_battle: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#030310"/>
+        <stop offset="60%"  stop-color="#0a0828"/>
+        <stop offset="100%" stop-color="#1a0840"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <circle cx="100" cy="30"  r="1.5" fill="white" opacity="0.6"/>
+      <circle cx="250" cy="50"  r="2"   fill="white" opacity="0.8"/>
+      <circle cx="400" cy="20"  r="1.5" fill="white" opacity="0.5"/>
+      <circle cx="600" cy="45"  r="2"   fill="white" opacity="0.7"/>
+      <circle cx="750" cy="25"  r="1.5" fill="white" opacity="0.6"/>
+      <circle cx="900" cy="60"  r="2"   fill="white" opacity="0.5"/>
+      <rect x="0"   y="200" width="80"  height="220" fill="#0a0818"/>
+      <rect x="90"  y="240" width="60"  height="180" fill="#0a0818"/>
+      <rect x="160" y="180" width="100" height="240" fill="#0a0818"/>
+      <rect x="270" y="220" width="70"  height="200" fill="#0a0818"/>
+      <rect x="640" y="210" width="90"  height="210" fill="#0a0818"/>
+      <rect x="740" y="190" width="80"  height="230" fill="#0a0818"/>
+      <rect x="830" y="230" width="100" height="190" fill="#0a0818"/>
+      <rect x="940" y="200" width="60"  height="220" fill="#0a0818"/>
+      <rect x="10"  y="215" width="14" height="10" fill="#ffee44" opacity="0.6"/>
+      <rect x="30"  y="230" width="14" height="10" fill="#ffee44" opacity="0.4"/>
+      <rect x="170" y="200" width="14" height="10" fill="#44aaff" opacity="0.5"/>
+      <rect x="190" y="220" width="14" height="10" fill="#ffee44" opacity="0.6"/>
+      <rect x="650" y="225" width="14" height="10" fill="#ffee44" opacity="0.7"/>
+      <rect x="670" y="240" width="14" height="10" fill="#ffee44" opacity="0.5"/>
+      <rect x="750" y="210" width="14" height="10" fill="#44aaff" opacity="0.6"/>
+      <rect x="850" y="248" width="14" height="10" fill="#ff8844" opacity="0.7"/>
+      <rect x="380" y="280" width="240" height="140" fill="#cc1122"/>
+      <rect x="380" y="280" width="240" height="140" fill="none" stroke="#ff3344" stroke-width="3"/>
+      <text x="500" y="337" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="14" fill="#ffffff">MISDO</text>
+      <text x="500" y="360" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="9"  fill="#ffcc44">BATTLE</text>
+      <rect x="380" y="280" width="240" height="140" fill="none" stroke="#ff3344" stroke-width="10" opacity="0.18"/>
+      <line x1="120" y1="380" x2="120" y2="420" stroke="#556677" stroke-width="5"/>
+      <ellipse cx="120" cy="375" rx="20" ry="8" fill="#ffee88" opacity="0.7"/>
+      <ellipse cx="120" cy="375" rx="32" ry="15" fill="#ffee88" opacity="0.18"/>
+      <line x1="880" y1="380" x2="880" y2="420" stroke="#556677" stroke-width="5"/>
+      <ellipse cx="880" cy="375" rx="20" ry="8" fill="#ffee88" opacity="0.7"/>
+      <ellipse cx="880" cy="375" rx="32" ry="15" fill="#ffee88" opacity="0.18"/>
+      <rect x="0"   y="420" width="1000" height="260" fill="#141420"/>
+      <rect x="440" y="420" width="16"  height="260" fill="#ffdd00" opacity="0.28"/>
+      <rect x="544" y="420" width="16"  height="260" fill="#ffdd00" opacity="0.28"/>`,
+  },
+
+  // ⛩️ 夏のノスタルジア — 夏の神社
+  natsu_no_nostalgia: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#1a4a90"/>
+        <stop offset="55%"  stop-color="#3a80c8"/>
+        <stop offset="100%" stop-color="#80c0f0"/>
+      </linearGradient>
+      <linearGradient id="fg-ground" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#2a5c18"/>
+        <stop offset="100%" stop-color="#183010"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <ellipse cx="200" cy="120" rx="100" ry="40" fill="white" opacity="0.8"/>
+      <ellipse cx="280" cy="100" rx="80"  ry="35" fill="white" opacity="0.9"/>
+      <ellipse cx="150" cy="130" rx="70"  ry="30" fill="white" opacity="0.7"/>
+      <ellipse cx="720" cy="90"  rx="110" ry="44" fill="white" opacity="0.75"/>
+      <ellipse cx="800" cy="75"  rx="85"  ry="36" fill="white" opacity="0.85"/>
+      <rect x="0"   y="270" width="1000" height="150" fill="#1e5212"/>
+      <polygon points="0,270 50,200 100,270"   fill="#163c0a"/>
+      <polygon points="80,280 130,205 180,280"  fill="#1a4a0e"/>
+      <polygon points="160,270 215,190 270,270" fill="#163c0a"/>
+      <polygon points="730,275 785,200 840,275" fill="#163c0a"/>
+      <polygon points="820,265 875,195 930,265" fill="#1a4a0e"/>
+      <polygon points="900,275 950,210 1000,275" fill="#163c0a"/>
+      <rect x="470" y="390" width="60" height="290" fill="#9a9888" opacity="0.55"/>
+      <rect x="430" y="260" width="140" height="20" fill="#cc3300"/>
+      <rect x="440" y="240" width="120" height="14" fill="#cc3300"/>
+      <rect x="448" y="260" width="18"  height="140" fill="#cc3300"/>
+      <rect x="534" y="260" width="18"  height="140" fill="#cc3300"/>
+      <rect x="390" y="380" width="30" height="40" fill="#aaa898"/>
+      <rect x="387" y="375" width="36" height="10" fill="#9a9888"/>
+      <rect x="390" y="370" width="30" height="8"  fill="#cc8833" opacity="0.6"/>
+      <rect x="580" y="380" width="30" height="40" fill="#aaa898"/>
+      <rect x="577" y="375" width="36" height="10" fill="#9a9888"/>
+      <rect x="580" y="370" width="30" height="8"  fill="#cc8833" opacity="0.6"/>
+      <rect x="0" y="420" width="1000" height="260" fill="url(#fg-ground)"/>`,
+  },
+
+  // 🏔️ 冬のサブリミナル — 雪山
+  fuyu_no_subliminal: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#b0c4de"/>
+        <stop offset="50%"  stop-color="#d0dff0"/>
+        <stop offset="100%" stop-color="#e8f0f8"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <polygon points="0,350 100,220 200,300 350,180 500,240 650,170 800,230 1000,200 1000,350" fill="#c0ccd8"/>
+      <polygon points="100,220 120,240 80,240"   fill="white"/>
+      <polygon points="350,180 380,210 320,210"  fill="white"/>
+      <polygon points="650,170 680,205 620,205"  fill="white"/>
+      <polygon points="0,400 150,280 300,350 500,270 700,320 850,270 1000,310 1000,400" fill="#a8b8c8"/>
+      <polygon points="150,280 175,308 125,308"  fill="white" opacity="0.95"/>
+      <polygon points="500,270 530,303 470,303"  fill="white" opacity="0.95"/>
+      <polygon points="850,270 880,305 820,305"  fill="white" opacity="0.95"/>
+      <rect x="0" y="400" width="1000" height="280" fill="white"/>
+      <rect x="0" y="400" width="1000" height="280" fill="#dde8f4" opacity="0.5"/>
+      <ellipse cx="200" cy="440" rx="180" ry="30" fill="white"/>
+      <ellipse cx="700" cy="450" rx="150" ry="25" fill="white"/>
+      <rect x="80"  y="370" width="12" height="50" fill="#3d2b1a"/>
+      <polygon points="86,340 66,390 106,390"  fill="#1e4a1a"/>
+      <polygon points="86,358 70,395 102,395"  fill="#1e4a1a"/>
+      <circle cx="86"  cy="337" r="9" fill="white" opacity="0.92"/>
+      <rect x="880" y="365" width="12" height="55" fill="#3d2b1a"/>
+      <polygon points="886,332 864,385 908,385" fill="#1e4a1a"/>
+      <polygon points="886,352 868,390 904,390" fill="#1e4a1a"/>
+      <circle cx="886" cy="330" r="9" fill="white" opacity="0.92"/>
+      <circle cx="150" cy="150" r="3" fill="white" opacity="0.7"/>
+      <circle cx="280" cy="100" r="2" fill="white" opacity="0.6"/>
+      <circle cx="420" cy="180" r="3" fill="white" opacity="0.8"/>
+      <circle cx="600" cy="130" r="2" fill="white" opacity="0.6"/>
+      <circle cx="750" cy="90"  r="3" fill="white" opacity="0.7"/>
+      <circle cx="900" cy="160" r="2" fill="white" opacity="0.6"/>`,
+  },
+
+  // 🐺 常夏の狼 — トロピカルビーチ
+  tokonatsu_no_okami: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#0a3a80"/>
+        <stop offset="50%"  stop-color="#1a7ad0"/>
+        <stop offset="100%" stop-color="#50b0e8"/>
+      </linearGradient>
+      <linearGradient id="fg-sea" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#0070b0"/>
+        <stop offset="100%" stop-color="#004488"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <circle cx="800" cy="130" r="60" fill="#ffdd22" opacity="0.9"/>
+      <circle cx="800" cy="130" r="75" fill="#ffdd22" opacity="0.25"/>
+      <circle cx="800" cy="130" r="92" fill="#ffdd22" opacity="0.12"/>
+      <ellipse cx="150" cy="100" rx="90" ry="35" fill="white" opacity="0.85"/>
+      <ellipse cx="220" cy="88"  rx="70" ry="30" fill="white" opacity="0.9"/>
+      <ellipse cx="500" cy="130" rx="100" ry="38" fill="white" opacity="0.8"/>
+      <rect x="0" y="360" width="1000" height="320" fill="url(#fg-sea)"/>
+      <path d="M 0 380 Q 100 368 200 378 Q 300 388 400 376 Q 500 364 600 374 Q 700 384 800 372 Q 900 360 1000 370" stroke="rgba(120,220,255,0.5)" stroke-width="3" fill="none"/>
+      <path d="M 0 395 Q 120 383 240 393 Q 360 403 480 391 Q 600 379 720 389 Q 840 399 1000 387" stroke="rgba(120,220,255,0.3)" stroke-width="2" fill="none"/>
+      <ellipse cx="500" cy="390" rx="520" ry="70" fill="#f0d880"/>
+      <ellipse cx="500" cy="402" rx="500" ry="58" fill="#e8cc68"/>
+      <rect x="0" y="420" width="1000" height="260" fill="#d8c060"/>
+      <rect x="150" y="260" width="18" height="160" fill="#8b5a2b" transform="rotate(-8,159,420)"/>
+      <ellipse cx="148" cy="252" rx="55" ry="30" fill="#2d7a1a" transform="rotate(-15,148,252)"/>
+      <ellipse cx="165" cy="242" rx="55" ry="28" fill="#3a8a20" transform="rotate(10,165,242)"/>
+      <ellipse cx="140" cy="262" rx="50" ry="25" fill="#2a7018" transform="rotate(-30,140,262)"/>
+      <rect x="800" y="255" width="18" height="165" fill="#8b5a2b" transform="rotate(6,809,420)"/>
+      <ellipse cx="812" cy="248" rx="55" ry="30" fill="#2d7a1a" transform="rotate(12,812,248)"/>
+      <ellipse cx="795" cy="240" rx="55" ry="28" fill="#3a8a20" transform="rotate(-8,795,240)"/>
+      <ellipse cx="820" cy="258" rx="50" ry="25" fill="#2a7018" transform="rotate(25,820,258)"/>
+      <circle cx="280" cy="428" r="8" fill="#ff3366" opacity="0.8"/>
+      <circle cx="300" cy="436" r="6" fill="#ff6699" opacity="0.7"/>
+      <circle cx="700" cy="432" r="8" fill="#ffaa00" opacity="0.8"/>
+      <circle cx="720" cy="440" r="6" fill="#ffcc44" opacity="0.7"/>`,
+  },
+
+  // 🛣️ ヒッチハイクダービー — 田舎のハイウェイ
+  hitchhike_derby: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#4a8ad0"/>
+        <stop offset="60%"  stop-color="#6aaae8"/>
+        <stop offset="100%" stop-color="#90c8f0"/>
+      </linearGradient>
+      <linearGradient id="fg-field" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#4a8a28"/>
+        <stop offset="100%" stop-color="#305a18"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <ellipse cx="180" cy="100" rx="110" ry="42" fill="white" opacity="0.85"/>
+      <ellipse cx="260" cy="85"  rx="90"  ry="36" fill="white" opacity="0.9"/>
+      <ellipse cx="700" cy="115" rx="120" ry="46" fill="white" opacity="0.8"/>
+      <ellipse cx="790" cy="98"  rx="95"  ry="38" fill="white" opacity="0.88"/>
+      <path d="M 0,350 Q 150,280 300,310 Q 450,260 600,290 Q 750,270 900,300 Q 950,310 1000,300 L 1000,420 L 0,420 Z" fill="#3a6a20"/>
+      <rect x="0"   y="420" width="1000" height="260" fill="url(#fg-field)"/>
+      <polygon points="380,420 620,420 800,680 200,680" fill="#444450"/>
+      <polygon points="494,420 506,420 530,480 470,480" fill="#ffdd00" opacity="0.7"/>
+      <polygon points="472,500 528,500 556,560 444,560" fill="#ffdd00" opacity="0.7"/>
+      <polygon points="448,580 552,580 586,640 414,640" fill="#ffdd00" opacity="0.7"/>
+      <polygon points="380,420 400,420 210,680 190,680" fill="white" opacity="0.45"/>
+      <polygon points="600,420 620,420 810,680 790,680" fill="white" opacity="0.45"/>
+      <line x1="400" y1="422" x2="210" y2="680" stroke="#aaaaaa" stroke-width="3" opacity="0.5"/>
+      <line x1="600" y1="422" x2="790" y2="680" stroke="#aaaaaa" stroke-width="3" opacity="0.5"/>
+      <rect x="60" y="358" width="130" height="52" fill="#005500"/>
+      <rect x="60" y="358" width="130" height="52" fill="none" stroke="#008800" stroke-width="2"/>
+      <text x="125" y="379" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7" fill="white">TANEGASHIMA</text>
+      <text x="125" y="399" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7" fill="white">↑ 48km</text>
+      <rect x="60" y="410" width="6" height="50" fill="#446644"/>`,
+  },
+
+  // 👊 プッシュ・ザ・フレンド — 夕暮れの街路
+  push_the_friend: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#1a0808"/>
+        <stop offset="40%"  stop-color="#7a2808"/>
+        <stop offset="80%"  stop-color="#c05020"/>
+        <stop offset="100%" stop-color="#e07840"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <rect x="700" y="80"  width="120" height="340" fill="#0c0c1a"/>
+      <rect x="830" y="120" width="100" height="300" fill="#0e0e20"/>
+      <rect x="940" y="150" width="60"  height="270" fill="#0c0c1a"/>
+      <rect x="0"   y="100" width="80"  height="320" fill="#0c0c1a"/>
+      <rect x="90"  y="130" width="90"  height="290" fill="#0e0e20"/>
+      <rect x="190" y="110" width="70"  height="310" fill="#0c0c1a"/>
+      <rect x="710" y="100" width="14" height="10" fill="#ffdd44" opacity="0.7"/>
+      <rect x="730" y="115" width="14" height="10" fill="#ffdd44" opacity="0.5"/>
+      <rect x="750" y="100" width="14" height="10" fill="#ff8844" opacity="0.8"/>
+      <rect x="770" y="130" width="14" height="10" fill="#ffdd44" opacity="0.6"/>
+      <rect x="710" y="135" width="14" height="10" fill="#ffdd44" opacity="0.8"/>
+      <rect x="750" y="150" width="14" height="10" fill="#44aaff" opacity="0.6"/>
+      <rect x="840" y="140" width="14" height="10" fill="#ffdd44" opacity="0.7"/>
+      <rect x="860" y="155" width="14" height="10" fill="#ffdd44" opacity="0.5"/>
+      <rect x="10"  y="120" width="14" height="10" fill="#44aaff" opacity="0.5"/>
+      <rect x="30"  y="135" width="14" height="10" fill="#ffdd44" opacity="0.7"/>
+      <rect x="100" y="150" width="14" height="10" fill="#ffdd44" opacity="0.8"/>
+      <rect x="120" y="150" width="14" height="10" fill="#ff8844" opacity="0.6"/>
+      <rect x="200" y="130" width="14" height="10" fill="#ffdd44" opacity="0.5"/>
+      <rect x="220" y="145" width="14" height="10" fill="#44aaff" opacity="0.7"/>
+      <rect x="0" y="420" width="1000" height="260" fill="#18181e"/>
+      <ellipse cx="300" cy="452" rx="80" ry="12" fill="#c05020" opacity="0.18"/>
+      <ellipse cx="700" cy="462" rx="60" ry="10" fill="#c05020" opacity="0.14"/>
+      <rect x="310" y="340" width="8" height="82" fill="#445566"/>
+      <line x1="314" y1="340" x2="342" y2="340" stroke="#445566" stroke-width="5"/>
+      <ellipse cx="342" cy="337" rx="16" ry="7" fill="#ffe880" opacity="0.8"/>
+      <ellipse cx="342" cy="337" rx="30" ry="14" fill="#ffe880" opacity="0.18"/>
+      <rect x="682" y="340" width="8" height="82" fill="#445566"/>
+      <line x1="686" y1="340" x2="658" y2="340" stroke="#445566" stroke-width="5"/>
+      <ellipse cx="658" cy="337" rx="16" ry="7" fill="#ffe880" opacity="0.8"/>
+      <ellipse cx="658" cy="337" rx="30" ry="14" fill="#ffe880" opacity="0.18"/>`,
+  },
+
+  // ♨️ 風呂これ — 夜の温泉
+  furo_kore: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#0d0820"/>
+        <stop offset="45%"  stop-color="#3a1a50"/>
+        <stop offset="100%" stop-color="#8a4040"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <circle cx="80"  cy="40"  r="2"   fill="white" opacity="0.7"/>
+      <circle cx="200" cy="25"  r="1.5" fill="white" opacity="0.5"/>
+      <circle cx="380" cy="60"  r="2"   fill="white" opacity="0.8"/>
+      <circle cx="560" cy="18"  r="1.5" fill="white" opacity="0.6"/>
+      <circle cx="740" cy="50"  r="2"   fill="white" opacity="0.5"/>
+      <circle cx="900" cy="35"  r="1.5" fill="white" opacity="0.7"/>
+      <rect x="250" y="200" width="500" height="220" fill="#1a0f08"/>
+      <polygon points="220,205 500,150 780,205" fill="#2a1a10"/>
+      <polygon points="230,200 500,148 770,200" fill="#3a2218"/>
+      <line x1="220" y1="205" x2="780" y2="205" stroke="#4a3228" stroke-width="4"/>
+      <rect x="465" y="128" width="70" height="30" fill="#2a1a10"/>
+      <polygon points="455,130 500,100 545,130" fill="#3a2218"/>
+      <rect x="290" y="230" width="30" height="40" fill="#ffaa44" opacity="0.7"/>
+      <rect x="340" y="230" width="30" height="40" fill="#ffaa44" opacity="0.6"/>
+      <rect x="390" y="230" width="30" height="40" fill="#ff8833" opacity="0.8"/>
+      <rect x="580" y="230" width="30" height="40" fill="#ffaa44" opacity="0.7"/>
+      <rect x="630" y="230" width="30" height="40" fill="#ff8833" opacity="0.6"/>
+      <rect x="680" y="230" width="30" height="40" fill="#ffaa44" opacity="0.8"/>
+      <rect x="460" y="360" width="80" height="60" fill="#2244aa" opacity="0.9"/>
+      <line x1="460" y1="360" x2="460" y2="420" stroke="#1a3388" stroke-width="3"/>
+      <line x1="490" y1="360" x2="490" y2="420" stroke="#1a3388" stroke-width="3"/>
+      <line x1="520" y1="360" x2="520" y2="420" stroke="#1a3388" stroke-width="3"/>
+      <line x1="540" y1="360" x2="540" y2="420" stroke="#1a3388" stroke-width="3"/>
+      <rect x="455" y="340" width="90" height="24" fill="#cc2200"/>
+      <text x="500" y="357" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8" fill="white">♨ ONSEN</text>
+      <ellipse cx="350" cy="308" rx="28" ry="16" fill="white" opacity="0.22"/>
+      <ellipse cx="360" cy="288" rx="22" ry="14" fill="white" opacity="0.16"/>
+      <ellipse cx="650" cy="302" rx="28" ry="16" fill="white" opacity="0.22"/>
+      <ellipse cx="645" cy="282" rx="22" ry="14" fill="white" opacity="0.16"/>
+      <line x1="0"   y1="390" x2="200" y2="390" stroke="#4a6a28" stroke-width="6"/>
+      <line x1="800" y1="390" x2="1000" y2="390" stroke="#4a6a28" stroke-width="6"/>
+      <line x1="30"  y1="370" x2="30"  y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="65"  y1="370" x2="65"  y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="100" y1="370" x2="100" y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="135" y1="370" x2="135" y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="835" y1="370" x2="835" y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="870" y1="370" x2="870" y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="905" y1="370" x2="905" y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <line x1="940" y1="370" x2="940" y2="420" stroke="#5a7a38" stroke-width="5"/>
+      <rect x="0" y="420" width="1000" height="260" fill="#2a2218"/>
+      <line x1="0" y1="460" x2="1000" y2="460" stroke="#3a3228" stroke-width="1" opacity="0.5"/>
+      <line x1="0" y1="500" x2="1000" y2="500" stroke="#3a3228" stroke-width="1" opacity="0.5"/>
+      <line x1="0" y1="540" x2="1000" y2="540" stroke="#3a3228" stroke-width="1" opacity="0.5"/>`,
+  },
+
+  // 💊 現代病クリニック — 曇り空の診療所
+  gendaibyo_clinic: {
+    defs: `
+      <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#8090a8"/>
+        <stop offset="50%"  stop-color="#a8b8c8"/>
+        <stop offset="100%" stop-color="#c8d4e0"/>
+      </linearGradient>`,
+    scene: `
+      <rect width="1000" height="680" fill="url(#fg-sky)"/>
+      <ellipse cx="200" cy="100" rx="180" ry="60" fill="#c0c8d4" opacity="0.7"/>
+      <ellipse cx="500" cy="80"  rx="200" ry="65" fill="#b8c0cc" opacity="0.6"/>
+      <ellipse cx="800" cy="110" rx="160" ry="55" fill="#c0c8d4" opacity="0.7"/>
+      <rect x="250" y="150" width="500" height="270" fill="#e8ecf0"/>
+      <rect x="250" y="150" width="500" height="270" fill="none" stroke="#c0ccd8" stroke-width="3"/>
+      <rect x="240" y="140" width="520" height="18" fill="#d0d8e4"/>
+      <rect x="270" y="180" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
+      <rect x="320" y="180" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
+      <rect x="370" y="180" width="40" height="35" fill="#90c0e0" opacity="0.7"/>
+      <rect x="420" y="180" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
+      <rect x="470" y="180" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
+      <rect x="520" y="180" width="40" height="35" fill="#90c0e0" opacity="0.7"/>
+      <rect x="570" y="180" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
+      <rect x="620" y="180" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
+      <rect x="670" y="180" width="40" height="35" fill="#90c0e0" opacity="0.7"/>
+      <rect x="270" y="230" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
+      <rect x="370" y="230" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
+      <rect x="470" y="230" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
+      <rect x="570" y="230" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
+      <rect x="670" y="230" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
+      <rect x="465" y="280" width="70" height="70" fill="#cc0000"/>
+      <rect x="465" y="280" width="70" height="70" fill="none" stroke="#ff2222" stroke-width="2"/>
+      <rect x="482" y="288" width="36" height="54" fill="white"/>
+      <rect x="470" y="300" width="60" height="30" fill="white"/>
+      <rect x="430" y="360" width="140" height="60" fill="#c0d8ec" opacity="0.8"/>
+      <rect x="430" y="360" width="140" height="60" fill="none" stroke="#90b8d4" stroke-width="2"/>
+      <line x1="500" y1="360" x2="500" y2="420" stroke="#90b8d4" stroke-width="2"/>
+      <rect x="340" y="138" width="320" height="20" fill="#1a3a6a"/>
+      <text x="500" y="153" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7" fill="white">GENDAIBYO CLINIC</text>
+      <rect x="430" y="420" width="140" height="260" fill="#d0d8e0"/>
+      <line x1="500" y1="420" x2="500" y2="680" stroke="#c0c8d0" stroke-width="2" opacity="0.5"/>
+      <rect x="0" y="420" width="1000" height="260" fill="#d4dce4"/>
+      <line x1="0" y1="460" x2="1000" y2="460" stroke="#c4ccd4" stroke-width="1"/>
+      <line x1="0" y1="500" x2="1000" y2="500" stroke="#c4ccd4" stroke-width="1"/>
+      <ellipse cx="240" cy="428" rx="30" ry="18" fill="#4a7a28" opacity="0.7"/>
+      <ellipse cx="760" cy="428" rx="30" ry="18" fill="#4a7a28" opacity="0.7"/>`,
+  },
+};
+
+// デフォルト (未設定ゲーム用)
+const DEFAULT_THEME = {
+  defs: `
+    <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#0a1a30"/>
+      <stop offset="100%" stop-color="#2a5080"/>
+    </linearGradient>`,
+  scene: `
+    <rect width="1000" height="680" fill="url(#fg-sky)"/>
+    <rect x="0" y="420" width="1000" height="260" fill="#1a3010"/>`,
+};
+
+// =====================================================
+//  MODAL
+// =====================================================
+function openModal(game) {
+  const ui        = game.ui_display;
+  const layout    = MAP_LAYOUT[game.game_id];
+  const statusKey = (layout && layout.status) || game.internal_only.status;
+  const st        = STATUS_UI[statusKey] || STATUS_UI.draft;
+
+  document.getElementById('mtitle').textContent   = ui.title;
+  document.getElementById('mtagline').textContent = ui.tagline || '—';
+  const badge = document.getElementById('mbadge');
+  badge.textContent = st.label;
+  badge.className   = `badge ${st.cls}`;
+
+  const pp = document.getElementById('mphotos');
+  const reviewsHtml = (ui.reviews && ui.reviews.length > 0)
+    ? `<div class="sec-label" style="margin-top:4px">口コミ</div>` +
+      ui.reviews.map(r => `
+        <div class="review-card">
+          <div class="review-body">"${r.body}"</div>
+          ${r.author ? `<div class="review-author">— ${r.author}</div>` : ''}
+        </div>`).join('')
+    : '';
+  const tagsHtml = (ui.tags && ui.tags.length > 0)
+    ? `<div class="sec-label">CATEGORY</div>
+       <div class="tags">${ui.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`
+    : '';
+  pp.innerHTML = `
+    <div class="game-icon-lg">${layout ? layout.icon : '?'}</div>
+    ${tagsHtml}
+    ${reviewsHtml}
+  `;
+
+  const rows = [];
+  if (ui.summary) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">STORY</div>
+      <div class="sec-text">${ui.summary}</div>
+    </div>`);
+  }
+  if (ui.venue && ui.venue.display_name) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">開催地</div>
+      <div class="sec-text">${ui.venue.display_name}</div>
+    </div>`);
+  }
+  const nextLabel = (ui.next_event && (ui.next_event.label || ui.next_event.date));
+  if (nextLabel) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">NEXT QUEST</div>
+      <div class="next-ev">
+        <span>📅</span>
+        <div class="next-ev-txt">${nextLabel}</div>
+      </div>
+    </div>`);
+  }
+  if (ui.latest_news && ui.latest_news.body) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">最新情報</div>
+      <div class="sec-text">${ui.latest_news.body}</div>
+    </div>`);
+  }
+  if (ui.recent_update && ui.recent_update.body) {
+    rows.push(`<div class="sec">
+      <div class="sec-label">最近の更新</div>
+      <div class="sec-text">${ui.recent_update.body}</div>
+    </div>`);
+  }
+  if (!rows.length) {
+    rows.push(`<div class="sec">
+      <div class="sec-text" style="color:var(--rpg-dim)">詳細情報は準備中です。</div>
+    </div>`);
+  }
+  document.getElementById('minfo').innerHTML = rows.join('');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// =====================================================
+//  CHARACTER DATA — ゲームごとのキャラクター定義
+// =====================================================
+const CHARACTER_DATA = {
+  densha_game_japan: {
+    characters: [
+      {
+        id:   'densha_main',
+        name: '謎の男',
+        image: 'assets/characters/densha_game_japan.png',
+        posX:   58,   // % from left
+        posBottom: 42, // px from bottom HUD
+        dialogues: [
+          'こんなに電車に乗ることなんて、\nこれまでもないし、これからもそう。',
+        ]
+      }
+    ]
+  }
+};
+
+// =====================================================
+//  FIELD RENDER
+// =====================================================
+function renderField(game) {
+  const theme  = FIELD_THEMES[game.game_id] || DEFAULT_THEME;
+  const layout = MAP_LAYOUT[game.game_id] || {};
+
+  document.getElementById('field-defs').innerHTML  = theme.defs  || '';
+  document.getElementById('field-scene').innerHTML = theme.scene || '';
+
+  document.getElementById('field-title').textContent      = game.ui_display.title;
+  document.getElementById('field-icon-emoji').textContent = layout.icon || '?';
+  document.getElementById('field-icon-label').textContent = game.ui_display.title;
+  document.title = game.ui_display.title + ' — THANATOS GAMES';
+
+  buildCharacters(game);
+}
+
+// =====================================================
+//  CHARACTER BUILDER
+// =====================================================
+function buildCharacters(game) {
+  const data      = CHARACTER_DATA[game.game_id];
+  const container = document.getElementById('characters');
+  container.innerHTML = '';
+  if (!data) return;
+
+  data.characters.forEach(char => {
+    const el = document.createElement('div');
+    el.className = 'character-sprite';
+    el.style.left   = char.posX + '%';
+    el.style.bottom = (char.posBottom + 38) + 'px'; // +38px for bottom HUD
+    el.innerHTML = `
+      <div class="char-hint" id="hint-${char.id}">!</div>
+      <img src="${char.image}" alt="${char.name}" draggable="false"
+           onerror="this.parentElement.style.display='none'">
+    `;
+    el.addEventListener('click', () => openDialogue(char, el));
+    container.appendChild(el);
+  });
+}
+
+// =====================================================
+//  DIALOGUE SYSTEM
+// =====================================================
+let _dlgChar      = null;
+let _dlgLine      = 0;
+let _dlgTyping    = false;
+let _dlgTimer     = null;
+
+function openDialogue(char, spriteEl) {
+  // すでに同じキャラが話し中なら無視
+  if (_dlgChar === char && document.getElementById('dialogue-box').classList.contains('open')) return;
+
+  clearInterval(_dlgTimer); // 残存タイマーを必ずクリア
+  _dlgChar = char;
+  _dlgLine = 0;
+
+  const hint = document.getElementById('hint-' + char.id);
+  if (hint) hint.classList.add('done');
+
+  document.getElementById('dlg-name').textContent = char.name;
+  document.getElementById('dialogue-box').classList.add('open');
+  typeText(char.dialogues[0]);
+}
+
+function typeText(text) {
+  clearInterval(_dlgTimer); // 二重起動防止
+  if (!text) return;
+
+  _dlgTyping = true;
+  const nextEl = document.getElementById('dlg-next');
+  nextEl.classList.remove('visible');
+  const el = document.getElementById('dlg-text');
+  el.textContent = '';
+  let i = 0;
+  const len = text.length;
+  _dlgTimer = setInterval(() => {
+    if (i < len) {
+      el.textContent += text[i];
+      i++;
+    } else {
+      clearInterval(_dlgTimer);
+      _dlgTyping = false;
+      nextEl.classList.add('visible');
+    }
+  }, 38);
+}
+
+function advanceDialogue() {
+  if (!_dlgChar) return;
+
+  // タイピング中はスキップ
+  if (_dlgTyping) {
+    clearInterval(_dlgTimer);
+    _dlgTyping = false;
+    document.getElementById('dlg-text').textContent = _dlgChar.dialogues[_dlgLine];
+    document.getElementById('dlg-next').classList.add('visible');
+    return;
+  }
+
+  _dlgLine++;
+  if (_dlgLine < _dlgChar.dialogues.length) {
+    typeText(_dlgChar.dialogues[_dlgLine]);
+  } else {
+    closeDialogue();
+  }
+}
+
+function closeDialogue() {
+  clearInterval(_dlgTimer);
+  _dlgTyping = false;
+  _dlgChar   = null;
+  document.getElementById('dialogue-box').classList.remove('open');
+}
+
+// =====================================================
+//  INIT
+// =====================================================
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const gameId = params.get('id');
+  if (!gameId) { window.location.href = 'index.html'; return; }
+
+  let game;
+  try {
+    const res  = await fetch('./games.json');
+    const data = await res.json();
+    game = data.games.find(g => g.game_id === gameId);
+  } catch (e) {
+    console.error('games.json の読み込みに失敗しました:', e);
+  }
+
+  if (!game) { window.location.href = 'index.html'; return; }
+
+  renderField(game);
+
+  // モーダルのコンテンツを事前に組み立て（表示はしない）
+  openModal(game);
+  closeModal();
+
+  // ゲームアイコン（上部）クリック → ポップアップ
+  document.getElementById('field-marker').addEventListener('click', () => {
+    document.getElementById('overlay').classList.add('open');
+  });
+  document.getElementById('mclose').addEventListener('click', closeModal);
+  document.getElementById('overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  });
+
+  // エントリーアニメーション終了後にオーバーレイを除去
+  setTimeout(() => {
+    const eo = document.getElementById('entry-overlay');
+    if (eo) eo.remove();
+  }, 700);
+
+  // ← WORLD ボタン
+  document.getElementById('btn-back').addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+
+  // ダイアログ: クリックで次の台詞 / 閉じる
+  document.getElementById('dialogue-box').addEventListener('click', advanceDialogue);
+  document.getElementById('dlg-close').addEventListener('click', e => {
+    e.stopPropagation();
+    closeDialogue();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeDialogue(); }
+    if (e.key === 'Enter' || e.key === ' ') advanceDialogue();
+  });
+}
+
+init();
+</script>
+</body>
+</html>

@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>ThanatosGames — World Portfolio</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -842,6 +845,28 @@ html, body {
 }
 
 /* ===== /ABOUT POPUP ===== */
+
+/* ===== FIELD TRANSITION (EXIT) ===== */
+#transition-overlay {
+  position: fixed; inset: 0;
+  background: #000010;
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease-in;
+}
+#transition-overlay.active { opacity: 1; }
+
+@keyframes markerZoomOut {
+  0%   { transform: translate(-50%, -100%) scale(1);   opacity: 1; }
+  40%  { transform: translate(-50%, -100%) scale(5);   opacity: 0.9; }
+  100% { transform: translate(-50%, -100%) scale(22);  opacity: 0; }
+}
+.marker.zooming {
+  animation: markerZoomOut 0.34s cubic-bezier(0.4, 0, 1, 1) forwards;
+  z-index: 301;
+}
+/* ===== /FIELD TRANSITION ===== */
 </style>
 </head>
 <body>
@@ -1162,6 +1187,40 @@ html, body {
       stroke="#c8a84b" stroke-width="1" fill="url(#g-tropical)" opacity=".80"/>
 
 
+    <!-- ══════════════════════════════════════ -->
+    <!--   LIFE BASE LABELS — 7拠点            -->
+    <!-- ══════════════════════════════════════ -->
+
+    <!-- ── NISEKO (ニセコ / Hokkaido) ── -->
+    <circle cx="672" cy="164" r="4" fill="#ffdd00" opacity=".7"/>
+    <line x1="672" y1="168" x2="672" y2="178" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="672" y="190" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">NISEKO</text>
+
+    <!-- ── SHONAN (湘南 / Kanagawa) ── -->
+    <circle cx="748" cy="335" r="4" fill="#ffdd00" opacity=".7"/>
+    <line x1="748" y1="339" x2="748" y2="349" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="748" y="361" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">SHONAN</text>
+
+    <!-- ── TENNOJI (天王寺 / Osaka) ── -->
+    <circle cx="512" cy="438" r="4" fill="#ffdd00" opacity=".7"/>
+    <line x1="512" y1="442" x2="512" y2="452" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="512" y="464" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">TENNOJI</text>
+
+    <!-- ── ITOSHIMA (糸島 / Fukuoka) ── -->
+    <circle cx="148" cy="345" r="4" fill="#ffdd00" opacity=".7"/>
+    <line x1="148" y1="349" x2="148" y2="359" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="148" y="371" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">ITOSHIMA</text>
+
+    <!-- ── CEBU (セブ / Philippines) ── -->
+    <circle cx="70" cy="613" r="4" fill="#ffdd00" opacity=".7"/>
+    <line x1="70" y1="617" x2="70" y2="627" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="70" y="639" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">CEBU</text>
+
         <!-- ── COMPASS (pixel style) ── -->
     <g transform="translate(928, 610)" opacity=".65">
       <rect x="-22" y="-22" width="44" height="44" fill="none" stroke="#ffdd00" stroke-width="2"/>
@@ -1184,6 +1243,9 @@ html, body {
 
   <!-- Markers -->
   <div id="markers"></div>
+
+  <!-- Field transition overlay -->
+  <div id="transition-overlay"></div>
 
   <!-- HUDs -->
   <div id="hud-top">
@@ -1352,7 +1414,14 @@ function buildMarkers() {
       </div>
       <div class="m-label">${game.ui_display.title}</div>
     `;
-    el.addEventListener('click', () => openModal(game.game_id));
+    el.addEventListener('click', () => {
+      if (el.classList.contains('zooming')) return;
+      el.classList.add('zooming');
+      document.getElementById('transition-overlay').classList.add('active');
+      setTimeout(() => {
+        window.location.href = 'game.html?id=' + game.game_id;
+      }, 320);
+    });
     wrap.appendChild(el);
   });
 }
