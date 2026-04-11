@@ -78,8 +78,8 @@ html, body {
 #map-container {
   position: absolute;
   top: 52px; left: 0; right: 0;
-  height: calc(100vh - 52px);    /* fallback */
-  height: calc(100svh - 52px);   /* svh: モバイルのアドレスバーを除いた実際の高さ */
+  height: calc(100vh - 52px - 38px);    /* fallback */
+  height: calc(100svh - 52px - 38px);   /* svh: モバイルのアドレスバーを除いた実際の高さ */
   overflow: hidden;
   cursor: grab;
 }
@@ -92,6 +92,14 @@ html, body {
   display: block;
 }
 
+/* ===== MAP ZOOM-OUT (スマホ・タブレット俯瞰表示) ===== */
+@media (max-width: 480px) {
+  #map-svg, #markers { width: 715px; height: 528px; } /* scale≈0.55 */
+}
+@media (min-width: 481px) and (max-width: 768px) {
+  #map-svg, #markers { width: 975px; height: 720px; } /* scale≈0.75 */
+}
+
 /* ===== LAND SANDY SHORES ===== */
 #hokkaido, #honshu, #kyushu {
   stroke: #c8a84b;
@@ -100,8 +108,8 @@ html, body {
 
 /* ===== MINIMAP ===== */
 #minimap {
-  position: absolute;
-  bottom: 48px; right: 10px;
+  position: fixed;
+  bottom: 46px; right: 10px;
   background: rgba(0,0,20,.80);
   border: 1px solid var(--rpg-border);
   z-index: 25;
@@ -120,8 +128,8 @@ html, body {
 
 /* ===== SCROLL HINT ===== */
 #scroll-hint {
-  position: absolute;
-  bottom: 48px;
+  position: fixed;
+  bottom: 46px;
   left: 50%; transform: translateX(-50%);
   font-family: 'Press Start 2P', monospace;
   font-size: 7px; color: #fff;
@@ -166,12 +174,12 @@ html, body {
 
 /* ===== BOTTOM HUD ===== */
 #hud-bottom {
-  position: absolute; bottom: 0; left: 0; right: 0;
+  position: fixed; bottom: 0; left: 0; right: 0;
   height: 38px;
   background: var(--menu-bg);
   border-top: 3px solid var(--rpg-border);
   display: flex; align-items: center; justify-content: center; gap: 44px;
-  z-index: 20; pointer-events: none;
+  z-index: 30; pointer-events: none;
 }
 .hint {
   font-family: 'Press Start 2P', monospace;
@@ -1348,15 +1356,24 @@ const MAP_W = 1300, MAP_H = 960; // SVG 固定レンダーサイズ
 // 初期スクロール中心 — TENNOJI (SVG座標)
 const TENNOJI_X = 828, TENNOJI_Y = 716;
 
+// ── 現在のスケール取得（CSS メディアクエリによる SVG サイズ変化を反映）──
+function getMapScale() {
+  const svg = document.getElementById('map-svg');
+  return (svg.clientWidth || MAP_W) / MAP_W;
+}
+
 // ── ミニマップ更新 ──
 function updateMinimap() {
-  const c  = document.getElementById('map-container');
-  const vp = document.getElementById('minimap-viewport');
-  const ms = document.getElementById('minimap-svg');
-  const mmW = ms.clientWidth  || 80;
-  const mmH = ms.clientHeight || 59;
-  const sx = mmW / MAP_W;
-  const sy = mmH / MAP_H;
+  const c   = document.getElementById('map-container');
+  const vp  = document.getElementById('minimap-viewport');
+  const ms  = document.getElementById('minimap-svg');
+  const scale = getMapScale();
+  const effW = MAP_W * scale;
+  const effH = MAP_H * scale;
+  const mmW  = ms.clientWidth  || 80;
+  const mmH  = ms.clientHeight || 59;
+  const sx = mmW / effW;
+  const sy = mmH / effH;
   vp.style.left   = (c.scrollLeft * sx) + 'px';
   vp.style.top    = (c.scrollTop  * sy) + 'px';
   vp.style.width  = (c.clientWidth  * sx) + 'px';
@@ -1365,18 +1382,20 @@ function updateMinimap() {
 
 // ── スクロール範囲をクランプ ──
 function clampScroll() {
-  const c = document.getElementById('map-container');
-  const maxL = Math.max(0, MAP_W - c.clientWidth);
-  const maxT = Math.max(0, MAP_H - c.clientHeight);
+  const c     = document.getElementById('map-container');
+  const scale = getMapScale();
+  const maxL  = Math.max(0, MAP_W * scale - c.clientWidth);
+  const maxT  = Math.max(0, MAP_H * scale - c.clientHeight);
   c.scrollLeft = Math.max(0, Math.min(c.scrollLeft, maxL));
   c.scrollTop  = Math.max(0, Math.min(c.scrollTop,  maxT));
 }
 
-// ── 初期スクロール位置（TENNOJI中央）──
+// ── 初期スクロール位置（TENNOJI中央 / scale 考慮）──
 function setInitialScroll() {
-  const c = document.getElementById('map-container');
-  c.scrollLeft = Math.max(0, TENNOJI_X - c.clientWidth  / 2);
-  c.scrollTop  = Math.max(0, TENNOJI_Y - c.clientHeight / 2);
+  const c     = document.getElementById('map-container');
+  const scale = getMapScale();
+  c.scrollLeft = Math.max(0, TENNOJI_X * scale - c.clientWidth  / 2);
+  c.scrollTop  = Math.max(0, TENNOJI_Y * scale - c.clientHeight / 2);
   updateMinimap();
 }
 
