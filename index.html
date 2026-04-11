@@ -194,124 +194,145 @@ html, body {
   letter-spacing: .06em;
 }
 
-/* ===== LEFT MENU ===== */
-#left-menu {
-  position: absolute; top: 66px; left: 14px;
-  display: flex; flex-direction: column; gap: 6px;
-  z-index: 20;
-}
-.menu-btn {
+/* ===== THG MENU BUTTON（右下・ミニマップの上）===== */
+#thg-menu-btn {
+  position: fixed;
+  bottom: 115px; right: 10px;
+  z-index: 26;
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;
-  color: var(--rpg-yellow);
-  background: var(--menu-bg);
-  border: 2px solid var(--rpg-border);
-  padding: 9px 13px;
+  color: #E85A2C;
+  background: #1A3A5C;
+  border: 2px solid #E85A2C;
+  padding: 9px 16px;
+  clip-path: polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%);
   cursor: pointer;
-  letter-spacing: .10em;
-  text-align: left;
-  transition: border-color .15s, color .15s, box-shadow .15s;
-  box-shadow: 0 0 4px rgba(136,136,255,.20);
+  letter-spacing: .12em;
+  box-shadow:
+    0 0 0 1px rgba(232,90,44,.4),
+    0 4px 10px rgba(0,0,0,.7),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  transition: transform .15s, box-shadow .15s;
 }
-.menu-btn:hover {
-  border-color: #00bcd4;
-  color: #00bcd4;
-  box-shadow: 0 0 10px rgba(0,188,212,.35);
+#thg-menu-btn:hover, #thg-menu-btn:active {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 1px #E85A2C,
+    0 6px 16px rgba(232,90,44,.45),
+    inset 0 1px 0 rgba(255,255,255,.08);
 }
+@media (max-width: 480px)                        { #thg-menu-btn { bottom: 91px;  } }
+@media (min-width: 481px) and (max-width: 768px) { #thg-menu-btn { bottom: 103px; } }
 
-/* ===== LORE OVERLAY ===== */
-#lore-overlay {
+/* ===== THG MENU OVERLAY ===== */
+#thg-menu-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,20,.82);
-  backdrop-filter: blur(3px);
+  background: rgba(0,0,0,.75);
   z-index: 110;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
   transition: opacity .2s ease;
 }
-#lore-overlay.open { opacity: 1; pointer-events: all; }
+#thg-menu-overlay.open { opacity: 1; pointer-events: all; }
 
-#lore-box {
-  width: min(640px, 92vw);
-  max-height: 82vh;
-  background: rgba(10,10,40,0.95);
-  border: 2px solid #aa44ff;
-  outline: 2px solid rgba(170,68,255,.28);
-  outline-offset: 4px;
-  box-shadow:
-    0 0 0 4px rgba(10,10,40,.95),
-    0 0 0 6px #aa44ff,
-    0 0 32px rgba(170,68,255,.35),
-    0 0 70px rgba(170,68,255,.15);
-  display: flex; flex-direction: column;
+#thg-menu-panel {
+  width: min(640px, 94vw);
+  max-height: min(520px, 88vh);
+  background: #0a1628;
+  border: 2px solid #E85A2C;
+  border-radius: 12px;
+  padding: 24px 28px 20px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
-.lore-head {
-  padding: 14px 18px 12px;
-  border-bottom: 1px solid rgba(170,68,255,.40);
-  background: linear-gradient(135deg, rgba(170,68,255,.10) 0%, transparent 60%);
-  display: flex; align-items: center; justify-content: space-between;
+
+#thg-menu-body {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
-.lore-title {
+
+#thg-menu-list {
+  width: 120px;
+  flex-shrink: 0;
+  border-right: 1px solid #1A3A5C;
+  padding-right: 14px;
+  display: flex;
+  flex-direction: column;
+}
+.thg-menu-item {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(8px, 1.4vw, 11px);
+  font-size: 7px;
+  color: #aac4e0;
+  padding: 11px 4px;
+  cursor: pointer;
+  letter-spacing: .06em;
+  line-height: 1.7;
+  border-bottom: 1px solid #1A3A5C;
+  transition: color .1s;
+  white-space: nowrap;
+}
+.thg-menu-item:last-child { border-bottom: none; }
+.thg-menu-item.active     { color: #E85A2C; }
+.thg-menu-item::before    { content: '　'; display: inline-block; width: 1em; }
+.thg-menu-item.active::before { content: '▶'; }
+
+#thg-menu-content {
+  flex: 1;
+  padding-left: 20px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.thg-menu-pane           { display: none; }
+.thg-menu-pane.active    { display: block; }
+.thg-pane-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
   color: #00bcd4;
+  margin-bottom: 14px;
   letter-spacing: .08em;
   line-height: 1.6;
 }
-.lore-close {
-  background: none;
-  border: 1px solid rgba(0,188,212,.5);
-  color: #00bcd4;
-  width: 28px; height: 28px;
-  cursor: pointer; font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all .15s;
-}
-.lore-close:hover {
-  background: rgba(0,188,212,.15);
-  box-shadow: 0 0 10px rgba(0,188,212,.35);
-}
-.lore-body {
-  padding: 20px 22px;
-  overflow-y: auto;
-  font-size: 13px;
+.thg-pane-body {
+  font-size: 12px;
   color: #e8e8ff;
-  line-height: 2.0;
+  line-height: 2.1;
   white-space: pre-wrap;
 }
 
-/* ===== LEGEND ===== */
-#legend {
-  position: absolute; top: 66px; right: 14px;
-  background: var(--menu-bg);
-  border: 2px solid var(--rpg-border);
-  padding: 12px 14px;
-  z-index: 20;
-}
-.legend-ttl {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px; color: var(--rpg-yellow);
-  margin-bottom: 10px; letter-spacing: .08em;
-}
-.leg {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px; color: var(--rpg-text);
-  margin-bottom: 8px; line-height: 1.5;
-}
-.leg:last-child { margin-bottom: 0; }
+/* MAP KEY dots */
 .ldot {
   width: 10px; height: 10px; flex-shrink: 0;
+  display: inline-block;
 }
-.ldot.c { background: var(--active-green); animation: blinkDot 1s step-end infinite; }
+.ldot.c { background: var(--active-green); animation: blinkDot 1s  step-end infinite; }
 .ldot.a { background: var(--active-red);   animation: blinkDot .7s step-end infinite; }
 .ldot.l { background: #334455; }
-@keyframes blinkDot {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+@keyframes blinkDot { 0%,100% { opacity:1; } 50% { opacity:0; } }
+.mapkey-row {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--rpg-text);
+  margin-bottom: 14px; line-height: 1.6;
 }
+
+#thg-menu-close {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #1A3A5C;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #E85A2C;
+  text-align: center;
+  cursor: pointer;
+  letter-spacing: .10em;
+  transition: opacity .15s;
+  flex-shrink: 0;
+}
+#thg-menu-close:hover { opacity: .7; }
 
 /* ===== MARKERS ===== */
 #markers {
@@ -1216,24 +1237,6 @@ html, body {
     <text x="556" y="906" text-anchor="middle"
       font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".80">CEBU</text>
 
-    <!-- ── COMPASS (pixel style) ── -->
-    <g transform="translate(1258, 920)" opacity=".65">
-      <rect x="-22" y="-22" width="44" height="44" fill="none" stroke="#ffdd00" stroke-width="2"/>
-      <line x1="0" y1="-18" x2="0" y2="18" stroke="#ffdd00" stroke-width="1.5"/>
-      <line x1="-18" y1="0" x2="18" y2="0"  stroke="#ffdd00" stroke-width="1.5"/>
-      <polygon points="0,-18 -4,-8 4,-8" fill="#ffdd00"/>
-      <text x="0" y="-24" text-anchor="middle"
-            font-family="'Press Start 2P',monospace" font-size="8" fill="#ffdd00">N</text>
-    </g>
-
-    <!-- ── SCALE ── -->
-    <g transform="translate(52, 928)" opacity=".5">
-      <line x1="0"  y1="0" x2="90" y2="0" stroke="#ffdd00" stroke-width="2"/>
-      <line x1="0"  y1="-5" x2="0"  y2="5" stroke="#ffdd00" stroke-width="2"/>
-      <line x1="90" y1="-5" x2="90" y2="5" stroke="#ffdd00" stroke-width="2"/>
-      <text x="45" y="-8" text-anchor="middle"
-            font-family="'Press Start 2P',monospace" font-size="7" fill="#ffdd00">SCALE</text>
-    </g>
   </svg>
 
   <!-- Markers -->
@@ -1284,31 +1287,84 @@ html, body {
     <span class="hint">ESC → 閉じる</span>
   </div>
 
-  <!-- Left Menu -->
-  <div id="left-menu">
-    <button class="menu-btn" id="btn-world">WORLD</button>
-    <button class="menu-btn" id="btn-howto">HOW TO</button>
-  </div>
+  <!-- THG Menu Button（右下・ミニマップの上）-->
+  <button id="thg-menu-btn">≡ MENU</button>
 
-  <!-- Legend -->
-  <div id="legend">
-    <div class="legend-ttl">MAP KEY</div>
-    <div class="leg"><div class="ldot c"></div><span>CLEARED — リリース済み</span></div>
-    <div class="leg"><div class="ldot a"></div><span>ACTIVE &nbsp;— 開発中</span></div>
-    <div class="leg"><div class="ldot l"></div><span>SEALED &nbsp;— 未公開</span></div>
-  </div>
 </div>
 
-<!-- ========== LORE POPUP ========== -->
-<div id="lore-overlay">
-  <div id="lore-box">
-    <div class="lore-head">
-      <div class="lore-title" id="lore-title"></div>
-      <button class="lore-close" id="lore-close">✕</button>
-    </div>
-    <div class="lore-body" id="lore-body"></div>
-  </div>
-</div>
+<!-- ========== THG MENU OVERLAY ========== -->
+<div id="thg-menu-overlay">
+  <div id="thg-menu-panel">
+    <div id="thg-menu-body">
+
+      <!-- 左カラム：項目リスト -->
+      <div id="thg-menu-list">
+        <div class="thg-menu-item active" data-key="world">WORLD LORE</div>
+        <div class="thg-menu-item" data-key="howto">HOW TO</div>
+        <div class="thg-menu-item" data-key="mapkey">MAP KEY</div>
+      </div>
+
+      <!-- 右カラム：展開コンテンツ -->
+      <div id="thg-menu-content">
+
+        <!-- WORLD LORE -->
+        <div class="thg-menu-pane active" id="pane-world">
+          <div class="thg-pane-title">THANATOS GAMES — WORLD LORE</div>
+          <div class="thg-pane-body">ここは、現実と地続きの冒険が眠るワールドマップだ。
+
+ThanatosGamesが手がけるゲームは、
+ゲームセンターでも、スマホの中でもなく——
+実際の街に、実際の人間と共に存在している。
+
+大阪の路地、奈良の山奥、北海道の雪原、
+そしてセブ島の海岸線。
+
+このマップに刻まれたアイコンひとつひとつが、
+誰かの人生に刺さった「本物の体験」の記録だ。
+
+CLEAREDは、すでに冒険が始まっている証。
+ACTIVEは、今まさに世界が動いている証。
+SEALEDは、まだ誰も知らない扉だ。
+
+あなたはどのクエストを選ぶ？</div>
+        </div>
+
+        <!-- HOW TO -->
+        <div class="thg-menu-pane" id="pane-howto">
+          <div class="thg-pane-title">HOW TO PLAY</div>
+          <div class="thg-pane-body">▶ アイコンをクリック
+　各地に配置されたゲームアイコンをクリックすると、
+　そのゲームの詳細クエスト情報が開く。
+
+▶ ステータスを確認
+　CLEARED　→　体験可能。参加者募集中のものもある。
+　ACTIVE　　→　現在開発中。続報を待て。
+　SEALED　　→　まだ世界に解放されていない。
+
+▶ クエストを受ける
+　気になるゲームを見つけたら、
+　詳細ページのリンクからエントリーせよ。
+
+▶ マップは更新される
+　新しいゲームが生まれるたび、
+　このワールドマップにも新たなアイコンが刻まれる。
+　定期的に訪れることを推奨する。</div>
+        </div>
+
+        <!-- MAP KEY -->
+        <div class="thg-menu-pane" id="pane-mapkey">
+          <div class="thg-pane-title">MAP KEY</div>
+          <div class="mapkey-row"><span class="ldot c"></span>CLEARED — リリース済み</div>
+          <div class="mapkey-row"><span class="ldot a"></span>ACTIVE &nbsp;— 開発中</div>
+          <div class="mapkey-row"><span class="ldot l"></span>SEALED &nbsp;— 未公開</div>
+        </div>
+
+      </div><!-- /thg-menu-content -->
+    </div><!-- /thg-menu-body -->
+
+    <div id="thg-menu-close">▶ WORLD MAP に戻る</div>
+  </div><!-- /thg-menu-panel -->
+</div><!-- /thg-menu-overlay -->
 
 <!-- ========== MODAL ========== -->
 <div id="overlay">
@@ -1649,70 +1705,33 @@ function closeModal() {
 }
 
 // =====================================================
-//  LORE POPUP — WORLD / HOW TO
+//  THG MENU OVERLAY
 // =====================================================
-const LORE_CONTENT = {
-  world: {
-    title: 'THANATOS GAMES — WORLD LORE',
-    body: `ここは、現実と地続きの冒険が眠るワールドマップだ。
-
-ThanatosGamesが手がけるゲームは、
-ゲームセンターでも、スマホの中でもなく——
-実際の街に、実際の人間と共に存在している。
-
-大阪の路地、奈良の山奥、北海道の雪原、
-そしてセブ島の海岸線。
-
-このマップに刻まれたアイコンひとつひとつが、
-誰かの人生に刺さった「本物の体験」の記録だ。
-
-CLEAREDは、すでに冒険が始まっている証。
-ACTIVEは、今まさに世界が動いている証。
-SEALEDは、まだ誰も知らない扉だ。
-
-あなたはどのクエストを選ぶ？`,
-  },
-  howto: {
-    title: 'HOW TO PLAY',
-    body: `▶ アイコンをクリック
-　各地に配置されたゲームアイコンをクリックすると、
-　そのゲームの詳細クエスト情報が開く。
-
-▶ ステータスを確認
-　CLEARED　→　体験可能。参加者募集中のものもある。
-　ACTIVE　　→　現在開発中。続報を待て。
-　SEALED　　→　まだ世界に解放されていない。
-
-▶ クエストを受ける
-　気になるゲームを見つけたら、
-　詳細ページのリンクからエントリーせよ。
-
-▶ マップは更新される
-　新しいゲームが生まれるたび、
-　このワールドマップにも新たなアイコンが刻まれる。
-　定期的に訪れることを推奨する。`,
-  },
-};
-
-function openLore(key) {
-  const c = LORE_CONTENT[key];
-  document.getElementById('lore-title').textContent = c.title;
-  document.getElementById('lore-body').textContent  = c.body;
-  document.getElementById('lore-overlay').classList.add('open');
+function openThgMenu() {
+  document.getElementById('thg-menu-overlay').classList.add('open');
+}
+function closeThgMenu() {
+  document.getElementById('thg-menu-overlay').classList.remove('open');
 }
 
-function closeLore() {
-  document.getElementById('lore-overlay').classList.remove('open');
-}
-
-document.getElementById('btn-world').addEventListener('click', () => openLore('world'));
-document.getElementById('btn-howto').addEventListener('click', () => openLore('howto'));
-document.getElementById('lore-close').addEventListener('click', closeLore);
-document.getElementById('lore-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('lore-overlay')) closeLore();
+document.getElementById('thg-menu-btn').addEventListener('click', openThgMenu);
+document.getElementById('thg-menu-close').addEventListener('click', closeThgMenu);
+document.getElementById('thg-menu-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('thg-menu-overlay')) closeThgMenu();
 });
+
+// タブ切り替え
+document.querySelectorAll('.thg-menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.thg-menu-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.thg-menu-pane').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('pane-' + item.dataset.key).classList.add('active');
+  });
+});
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeLore(); }
+  if (e.key === 'Escape') { closeModal(); closeThgMenu(); }
 });
 
 // ===== ABOUT POPUP =====
