@@ -85,19 +85,26 @@ html, body {
 }
 #map-container:active { cursor: grabbing; }
 
+/* ===== MAP STAGE（SVG + markers を一体管理）===== */
+#map-stage {
+  position: absolute; top: 0; left: 0;
+  width: 1300px; height: 960px;
+}
+
 /* ===== MAP SVG ===== */
 #map-svg {
   position: absolute; top: 0; left: 0;
-  width: 1300px; height: 960px;
+  width: 100%; height: 100%;
   display: block;
 }
 
 /* ===== MAP ZOOM-OUT (スマホ・タブレット俯瞰表示) ===== */
+/* #map-stage を縮小するだけで SVG・マーカーが連動してスケールする */
 @media (max-width: 480px) {
-  #map-svg, #markers { width: 715px; height: 528px; } /* scale≈0.55 */
+  #map-stage { width: 715px; height: 528px; } /* scale≈0.55 */
 }
 @media (min-width: 481px) and (max-width: 768px) {
-  #map-svg, #markers { width: 975px; height: 720px; } /* scale≈0.75 */
+  #map-stage { width: 975px; height: 720px; } /* scale≈0.75 */
 }
 
 /* ===== LAND SANDY SHORES ===== */
@@ -309,7 +316,7 @@ html, body {
 /* ===== MARKERS ===== */
 #markers {
   position: absolute; top: 0; left: 0;
-  width: 1300px; height: 960px;
+  width: 100%; height: 100%;   /* #map-stage に追従 */
   pointer-events: none;
 }
 
@@ -945,6 +952,9 @@ html, body {
   <!-- Map Container (scrollable / draggable) -->
   <div id="map-container">
 
+  <!-- Map Stage: SVG地形 + マーカーを一体管理。ここのサイズを変えるだけで両方連動 -->
+  <div id="map-stage">
+
   <!-- SVG World Map — Japan + Philippines RPG Pixel Art -->
   <svg id="map-svg" viewBox="0 0 1300 960">
     <defs>
@@ -1229,6 +1239,7 @@ html, body {
   <!-- Markers -->
   <div id="markers"></div>
 
+  </div><!-- /map-stage -->
   </div><!-- /map-container -->
 
   <!-- Minimap -->
@@ -1356,10 +1367,11 @@ const MAP_W = 1300, MAP_H = 960; // SVG 固定レンダーサイズ
 // 初期スクロール中心 — TENNOJI (SVG座標)
 const TENNOJI_X = 828, TENNOJI_Y = 716;
 
-// ── 現在のスケール取得（CSS メディアクエリによる SVG サイズ変化を反映）──
+// ── 現在のスケール取得（#map-stage の実サイズから算出）──
+// #map-stage の width が CSS メディアクエリで変わると SVG・マーカー両方に反映される
 function getMapScale() {
-  const svg = document.getElementById('map-svg');
-  return (svg.clientWidth || MAP_W) / MAP_W;
+  const stage = document.getElementById('map-stage');
+  return (stage.clientWidth || MAP_W) / MAP_W;
 }
 
 // ── ミニマップ更新 ──
