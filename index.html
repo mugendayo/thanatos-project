@@ -74,19 +74,69 @@ html, body {
   50%      { transform: translate(12px, 8px); }
 }
 
+/* ===== MAP CONTAINER (scrollable) ===== */
+#map-container {
+  position: absolute;
+  top: 52px; left: 0; right: 0;
+  height: calc(100vh - 52px);    /* fallback */
+  height: calc(100svh - 52px);   /* svh: モバイルのアドレスバーを除いた実際の高さ */
+  overflow: hidden;
+  cursor: grab;
+}
+#map-container:active { cursor: grabbing; }
+
 /* ===== MAP SVG ===== */
 #map-svg {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  transform: skewY(-5deg);
-  transform-origin: center center;
+  position: absolute; top: 0; left: 0;
+  width: 1300px; height: 960px;
+  display: block;
 }
 
 /* ===== LAND SANDY SHORES ===== */
-#hokkaido, #honshu, #kyushu, #shikoku {
+#hokkaido, #honshu, #kyushu {
   stroke: #c8a84b;
-  stroke-width: 5;
+  stroke-width: 1.5;
 }
+
+/* ===== MINIMAP ===== */
+#minimap {
+  position: absolute;
+  bottom: 48px; right: 10px;
+  background: rgba(0,0,20,.80);
+  border: 1px solid var(--rpg-border);
+  z-index: 25;
+  pointer-events: none;
+}
+#minimap-svg {
+  display: block;
+  width: 80px; height: 59px;
+}
+#minimap-viewport {
+  position: absolute;
+  border: 2px solid #E85A2C;
+  pointer-events: none;
+  box-shadow: inset 0 0 4px rgba(232,90,44,.4);
+}
+
+/* ===== SCROLL HINT ===== */
+#scroll-hint {
+  position: absolute;
+  bottom: 48px;
+  left: 50%; transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: #fff;
+  background: rgba(232,90,44,0.85);
+  padding: 7px 16px;
+  border-radius: 10px;
+  z-index: 25;
+  pointer-events: none;
+  transition: opacity .5s;
+  white-space: nowrap;
+}
+#scroll-hint.hidden { opacity: 0; }
+
+@media (max-width: 480px)                        { #minimap-svg { width: 48px; height: 35px; } }
+@media (min-width: 481px) and (max-width: 768px) { #minimap-svg { width: 64px; height: 47px; } }
 
 /* ===== TOP HUD ===== */
 #hud-top {
@@ -249,7 +299,11 @@ html, body {
 }
 
 /* ===== MARKERS ===== */
-#markers { position: absolute; pointer-events: none; }
+#markers {
+  position: absolute; top: 0; left: 0;
+  width: 1300px; height: 960px;
+  pointer-events: none;
+}
 
 .marker {
   position: absolute;
@@ -880,8 +934,11 @@ html, body {
     <div class="wave-layer"></div>
   </div>
 
+  <!-- Map Container (scrollable / draggable) -->
+  <div id="map-container">
+
   <!-- SVG World Map — Japan + Philippines RPG Pixel Art -->
-  <svg id="map-svg" viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid meet">
+  <svg id="map-svg" viewBox="0 0 1300 960">
     <defs>
       <filter id="shadow">
         <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="rgba(15,60,10,.75)"/>
@@ -915,276 +972,196 @@ html, body {
         <stop offset="0%"   stop-color="#2d7a2d"/>
         <stop offset="100%" stop-color="#1a5218"/>
       </radialGradient>
+      <!-- Island FX: shallow-water cyan glow + land drop shadow -->
+      <filter id="island-fx" x="-35%" y="-35%" width="170%" height="170%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="22" result="blur-glow"/>
+        <feFlood flood-color="rgba(60,200,255,.38)" result="color-glow"/>
+        <feComposite in="color-glow" in2="blur-glow" operator="in" result="glow"/>
+        <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur-shadow"/>
+        <feOffset in="blur-shadow" dy="6" result="offset-shadow"/>
+        <feFlood flood-color="rgba(15,60,10,.72)" result="color-shadow"/>
+        <feComposite in="color-shadow" in2="offset-shadow" operator="in" result="shadow"/>
+        <feMerge>
+          <feMergeNode in="glow"/>
+          <feMergeNode in="shadow"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
     </defs>
 
     <!-- ── OCEAN WAVE BACKGROUND ── -->
-    <rect width="1000" height="680" fill="url(#wave-pattern)"/>
+    <rect width="1300" height="960" fill="url(#wave-pattern)"/>
 
-    <!-- ════════════════════════════════════════════ -->
-    <!--   JAPAN MAP — Kansai expanded (~50% Honshu)  -->
-    <!-- ════════════════════════════════════════════ -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--  JAPAN MAP — 1300×960 canvas, full terrain redesign -->
+    <!-- ════════════════════════════════════════════════════ -->
 
     <!-- ── HOKKAIDO ── -->
-    <path id="hokkaido" filter="url(#shadow)"
-      stroke="#c8a84b" stroke-width="1.5"
-      d="M 598,178
-         L 580,164 L 570,148 L 562,130 L 568,120 L 578,112
-         L 586,104 L 594,96
-         C 604,84 622,70 640,62
-         L 654,56 L 670,50 L 688,46 L 706,46
-         C 728,48 750,56 770,66
-         L 788,76 L 806,88 L 820,102 L 818,118 L 808,132 L 814,146
-         C 807,158 793,166 774,172
-         C 754,178 732,184 710,186
-         L 694,184
-         C 672,188 648,190 626,186
-         C 608,184 601,180 598,178 Z"
+    <path id="hokkaido" filter="url(#island-fx)"
+      d="M 836,240
+         C 816,226 798,208 794,186 C 790,164 800,140 820,124
+         C 840,108 870,98 904,94 C 938,90 974,98 1002,116
+         C 1030,134 1046,160 1042,186 C 1038,212 1020,234 994,250
+         C 968,266 934,274 900,272 C 866,270 838,248 836,240 Z"
       fill="url(#g-land)"/>
-    <path d="M 638,64 C 660,52 684,47 708,48 C 734,50 756,58 772,68
-             C 750,62 726,58 702,60 C 678,62 656,64 638,68 Z"
-      fill="url(#g-snow)" opacity=".68"/>
-    <g opacity=".88" transform="translate(690,122)">
-      <polygon points="0,-20 -12,6 12,6"   fill="url(#g-mtns)"/>
-      <polygon points="20,-15 10,7 30,7"   fill="url(#g-mtns)"/>
-      <polygon points="-18,-13 -28,7 -8,7" fill="url(#g-mtns)"/>
-      <polygon points="0,-20 -4,-8 4,-8"   fill="white" opacity=".92"/>
-      <polygon points="20,-15 17,-7 23,-7" fill="white" opacity=".82"/>
-      <polygon points="-18,-13 -21,-5 -15,-5" fill="white" opacity=".78"/>
+    <!-- 北海道 forest overlay -->
+    <path d="M 902,104 C 932,98 962,106 984,124 C 1004,140 1010,164 1000,186
+             C 990,206 968,218 944,222 C 920,226 894,218 876,204
+             C 858,190 850,168 858,148 C 866,128 882,110 902,104 Z"
+      fill="url(#g-forest)" opacity=".45" pointer-events="none"/>
+    <!-- 北海道 snow cap -->
+    <path d="M 878,100 C 906,90 938,90 966,102 C 992,114 1010,134 1010,150
+             C 990,138 964,128 936,124 C 908,120 882,124 862,132 Z"
+      fill="url(#g-snow)" opacity=".64"/>
+    <!-- 北海道 mountains -->
+    <g opacity=".86" transform="translate(920,172)">
+      <polygon points="0,-26 -15,8 15,8"   fill="url(#g-mtns)"/>
+      <polygon points="26,-20 12,9 40,9"   fill="url(#g-mtns)"/>
+      <polygon points="-24,-18 -38,9 -10,9" fill="url(#g-mtns)"/>
+      <polygon points="0,-26 -5,-10 5,-10" fill="white" opacity=".92"/>
+      <polygon points="26,-20 22,-10 30,-10" fill="white" opacity=".82"/>
+      <polygon points="-24,-18 -28,-6 -20,-6" fill="white" opacity=".78"/>
     </g>
-    <g fill="#2d7a2d" opacity=".82">
-      <circle cx="646" cy="134" r="16"/><circle cx="662" cy="120" r="15"/>
-      <circle cx="636" cy="148" r="14"/><circle cx="678" cy="132" r="16"/>
-      <circle cx="654" cy="156" r="13"/><circle cx="696" cy="148" r="14"/>
-      <circle cx="670" cy="166" r="13"/><circle cx="640" cy="166" r="12"/>
+    <!-- 北海道 forests -->
+    <g fill="#2d7a2d" opacity=".80">
+      <circle cx="872" cy="198" r="20"/><circle cx="892" cy="180" r="19"/>
+      <circle cx="854" cy="214" r="18"/><circle cx="910" cy="196" r="20"/>
+      <circle cx="876" cy="228" r="17"/><circle cx="928" cy="212" r="18"/>
     </g>
 
-    <!-- ── HONSHU — Kansai (Kii) ×1.4 expanded ── -->
-    <path id="honshu" filter="url(#shadow)"
-      stroke="#c8a84b" stroke-width="1.5"
-      d="M 624,186
-         C 660,193 700,215 738,248
-         C 756,266 762,290 752,314
-         C 742,336 724,355 706,370
-         C 696,386 680,408 668,438
-         C 656,468 648,504 644,540
-         C 640,580 622,610 600,596
-         C 578,578 552,546 520,524
-         C 488,502 452,480 414,462
-         C 378,444 344,422 314,400
-         C 280,375 255,364 228,356
-         C 200,348 170,344 142,346
-         C 118,349 102,360 98,375
-         C 95,390 100,406 112,418
-         C 128,430 150,438 174,442
-         C 200,446 226,447 254,443
-         C 283,438 312,430 340,424
-         C 360,419 370,418 372,418
-         C 408,400 444,382 476,366
-         C 506,352 532,340 558,330
-         C 580,320 598,312 616,300
-         C 632,290 642,275 644,256
-         C 646,236 638,209 624,193
-         Z"
+    <!-- ── MAIN JAPAN (Honshu + Shikoku + Awaji — merged, tall waist) ── -->
+    <path id="honshu" filter="url(#island-fx)"
+      d="M 764,278
+         C 800,264 870,260 950,268
+         C 1006,276 1058,302 1094,344
+         C 1120,376 1120,416 1100,454
+         C 1080,490 1046,516 1010,540
+         C 974,562 936,578 906,606
+         C 878,632 860,662 868,698
+         C 876,732 896,762 906,792
+         C 914,818 898,836 868,842
+         C 838,848 798,846 758,836
+         C 716,826 672,806 634,778
+         C 596,750 576,712 584,674
+         C 592,636 618,610 646,592
+         C 672,574 704,556 730,532
+         C 754,508 766,476 760,444
+         C 754,412 736,384 714,370
+         L 764,278 Z"
       fill="url(#g-land)"/>
-    <!-- 能登半島 Noto Peninsula -->
-    <path stroke="#c8a84b" stroke-width="1.2"
-      d="M 610,298 C 622,285 636,280 644,290
-         C 652,300 646,316 632,322
-         C 618,328 602,322 600,308
-         C 599,301 604,299 610,298 Z"
-      fill="url(#g-land)"/>
-    <!-- 伊豆半島 Izu Peninsula -->
-    <path stroke="#c8a84b" stroke-width="1.2"
-      d="M 744,332 C 752,342 756,356 752,368
-         C 747,378 736,380 730,372
-         C 724,362 724,347 730,337
-         C 735,330 741,329 744,332 Z"
-      fill="url(#g-land)"/>
+    <!-- Honshu forest overlay (two-tone darker interior) -->
+    <path d="M 840,290 C 920,296 1000,322 1046,368 C 1082,406 1084,452 1060,490
+             C 1036,526 994,550 954,574 C 916,596 878,614 852,648
+             C 830,678 830,712 844,742 C 856,768 872,792 874,816
+             C 876,832 862,840 840,838 C 810,836 774,828 736,812
+             C 700,796 662,772 632,742 C 606,716 594,684 602,656
+             C 612,628 636,608 660,594 C 686,578 716,562 740,540
+             C 762,518 772,490 766,462 C 760,436 742,414 720,400 Z"
+      fill="url(#g-forest)" opacity=".36" pointer-events="none"/>
+    <!-- ── 能登半島 hint ── -->
+    <path d="M 720,400 C 704,386 690,372 686,360 C 682,350 690,342 702,344
+             C 714,346 724,360 728,374 C 732,388 728,402 720,400 Z"
+      stroke="#c8a84b" stroke-width="0.8" fill="url(#g-land)" filter="url(#island-fx)"/>
+    <!-- ── 房総半島 hint ── -->
+    <path d="M 1094,468 C 1110,482 1120,502 1120,522 C 1120,538 1112,550 1100,548
+             C 1088,546 1078,530 1076,512 C 1074,494 1080,476 1094,468 Z"
+      stroke="#c8a84b" stroke-width="0.8" fill="url(#g-land)" filter="url(#island-fx)"/>
+    <!-- ── 紀伊半島 hint ── -->
+    <path d="M 900,720 C 918,736 928,758 924,776 C 920,790 906,796 894,786
+             C 882,776 878,756 884,740 C 890,724 900,718 900,720 Z"
+      stroke="#c8a84b" stroke-width="0.8" fill="url(#g-land)" filter="url(#island-fx)"/>
     <!-- 日本アルプス -->
-    <g opacity=".90" transform="translate(626,258)">
-      <polygon points="0,-28 -16,8 16,8"   fill="url(#g-mtns)"/>
-      <polygon points="24,-22 10,9 38,9"   fill="url(#g-mtns)"/>
-      <polygon points="-22,-18 -36,9 -8,9" fill="url(#g-mtns)"/>
-      <polygon points="0,-28 -5,-13 5,-13" fill="white" opacity=".95"/>
-      <polygon points="24,-22 20,-12 28,-12" fill="white" opacity=".85"/>
-      <polygon points="-22,-18 -26,-8 -18,-8" fill="white" opacity=".80"/>
+    <g opacity=".88" transform="translate(918,380)">
+      <polygon points="0,-32 -18,10 18,10"   fill="url(#g-mtns)"/>
+      <polygon points="28,-26 12,10 44,10"   fill="url(#g-mtns)"/>
+      <polygon points="-26,-22 -42,10 -10,10" fill="url(#g-mtns)"/>
+      <polygon points="0,-32 -6,-14 6,-14" fill="white" opacity=".95"/>
+      <polygon points="28,-26 24,-14 32,-14" fill="white" opacity=".85"/>
+      <polygon points="-26,-22 -30,-8 -22,-8" fill="white" opacity=".80"/>
     </g>
     <!-- 富士山 -->
-    <g opacity=".92" transform="translate(730,322)">
-      <polygon points="0,-28 -16,8 16,8"   fill="url(#g-mtns)"/>
-      <polygon points="0,-28 -5,-12 5,-12" fill="white" opacity=".95"/>
+    <g opacity=".92" transform="translate(1040,430)">
+      <polygon points="0,-34 -20,10 20,10" fill="url(#g-mtns)"/>
+      <polygon points="0,-34 -6,-14 6,-14" fill="white" opacity=".95"/>
     </g>
     <!-- 東北 forests -->
-    <g fill="#2d7a2d" opacity=".82">
-      <circle cx="696" cy="208" r="16"/><circle cx="712" cy="222" r="15"/>
-      <circle cx="682" cy="224" r="14"/><circle cx="702" cy="236" r="13"/>
-      <circle cx="720" cy="210" r="13"/><circle cx="688" cy="240" r="12"/>
-      <circle cx="718" cy="232" r="12"/>
+    <g fill="#2d7a2d" opacity=".80">
+      <circle cx="848" cy="300" r="20"/><circle cx="870" cy="316" r="19"/>
+      <circle cx="830" cy="320" r="18"/><circle cx="858" cy="336" r="17"/>
     </g>
     <!-- 関西 forests -->
-    <g fill="#2d7a2d" opacity=".75">
-      <circle cx="562" cy="360" r="14"/><circle cx="578" cy="372" r="13"/>
-      <circle cx="548" cy="374" r="13"/><circle cx="566" cy="386" r="12"/>
-      <circle cx="582" cy="354" r="12"/><circle cx="596" cy="370" r="13"/>
-    </g>
-    <!-- 瀬戸内海 Seto Inland Sea -->
-    <ellipse cx="410" cy="492" rx="45" ry="10"
-      fill="rgba(30,80,160,.26)" opacity=".56"/>
-
-    <!-- ── 淡路島 Awaji Island ── -->
-    <ellipse cx="415" cy="490" rx="10" ry="18"
-      stroke="#c8a84b" stroke-width="1.2" fill="url(#g-land)"/>
-
-    <!-- ── 関西国際空港 Kansai International Airport ── -->
-    <rect x="482" y="468" width="18" height="9" rx="2"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
-
-    <!-- ── KANSAI PREFECTURE BOUNDARIES ── -->
-    <g stroke="#6a9040" stroke-width="0.8" fill="none" opacity="0.32" stroke-dasharray="4 3" stroke-linecap="round">
-      <!-- 大阪/京都 境界 -->
-      <path d="M 424,408 C 452,402 488,398 544,402"/>
-      <!-- 大阪/兵庫 境界 -->
-      <path d="M 424,408 C 420,426 414,448 408,472"/>
-      <!-- 大阪/奈良 境界 -->
-      <path d="M 544,402 C 546,422 550,446 554,478"/>
-      <!-- 大阪南/和歌山北 境界 -->
-      <path d="M 408,472 C 440,488 482,496 518,492 C 534,490 544,484 554,478"/>
-      <!-- 奈良/和歌山 境界（紀伊山地） -->
-      <path d="M 554,478 C 560,500 566,526 570,552 C 572,568 573,582 572,590"/>
-      <!-- 奈良/三重 境界（紀伊東稜） -->
-      <path d="M 544,402 C 560,418 578,442 592,468 C 604,494 612,522 616,550 C 618,566 618,580 616,590"/>
-      <!-- 和歌山/三重 境界（紀伊先端） -->
-      <path d="M 572,590 C 588,592 602,592 616,590"/>
-      <!-- 京都/兵庫 境界 -->
-      <path d="M 424,408 C 412,396 398,386 384,382"/>
-      <!-- 京都/滋賀 -->
-      <path d="M 544,402 C 552,388 558,372 563,354"/>
+    <g fill="#2d7a2d" opacity=".74">
+      <circle cx="790" cy="612" r="18"/><circle cx="810" cy="628" r="17"/>
+      <circle cx="770" cy="628" r="17"/><circle cx="796" cy="646" r="15"/>
     </g>
 
-    <!-- ── YODOGAWA RIVER（淀川） ── -->
-    <!-- 琵琶湖南端 → 京都 → 大阪市内（淀川沿い） → 大阪湾 -->
-    <path stroke="#4488cc" stroke-width="2.0" fill="none" opacity="0.60"
-      stroke-linecap="round" stroke-linejoin="round"
-      d="M 563,354 C 546,362 526,370 506,378
-         C 486,386 466,392 450,400
-         C 436,408 424,416 412,424
-         C 402,432 394,440 386,448"/>
+    <!-- ── IZU ISLANDS (伊豆諸島) ── -->
+    <ellipse cx="1086" cy="600" rx="10" ry="18" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-land)" filter="url(#island-fx)" transform="rotate(-8,1086,600)" opacity=".86"/>
+    <ellipse cx="1096" cy="636" rx="8" ry="13" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-land)" opacity=".74"/>
+    <ellipse cx="1104" cy="666" rx="6" ry="10" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-land)" opacity=".66"/>
 
-    <!-- ── SHIKOKU ── -->
-    <path id="shikoku" filter="url(#shadow)"
-      stroke="#c8a84b" stroke-width="1.4"
-      d="M 372,520
-         C 392,507 424,502 460,508
-         C 496,514 524,530 532,548
-         C 540,566 524,582 492,588
-         C 460,594 424,588 396,575
-         C 368,562 358,544 366,530
-         C 368,523 370,520 372,520 Z"
+    <!-- ── KYUSHU (本州左下に接続 — Kanmon Strait gap) ── -->
+    <path id="kyushu" filter="url(#island-fx)"
+      d="M 628,782
+         C 652,772 680,770 706,784
+         C 730,798 738,826 728,852
+         C 718,876 696,892 670,902
+         C 644,912 614,916 584,910
+         C 554,904 526,888 506,864
+         C 488,840 488,812 504,788
+         C 520,764 548,752 580,752
+         C 610,752 626,770 628,782 Z"
       fill="url(#g-land)"/>
-    <g opacity=".68" transform="translate(452,538)">
-      <polygon points="0,-14 -8,5 8,5"  fill="url(#g-mtns)"/>
-      <polygon points="13,-10 6,5 20,5" fill="url(#g-mtns)"/>
-      <polygon points="0,-14 -3,-6 3,-6" fill="white" opacity=".90"/>
-    </g>
-    <!-- 四国 forests -->
-    <g fill="#2d7a2d" opacity=".78">
-      <circle cx="410" cy="554" r="14"/><circle cx="426" cy="542" r="13"/>
-      <circle cx="442" cy="558" r="14"/><circle cx="458" cy="548" r="13"/>
-      <circle cx="420" cy="568" r="12"/><circle cx="400" cy="566" r="12"/>
-    </g>
-
-    <!-- ── KYUSHU (Hoenn-inspired) ── -->
-    <path id="kyushu" filter="url(#shadow)"
-      stroke="#c8a84b" stroke-width="1.5"
-      d="M 130,342
-         C 158,334 190,328 218,328
-         C 244,328 262,338 266,356
-         C 270,374 260,392 246,406
-         L 230,424 L 216,444 L 208,466
-         C 204,484 202,502 198,516
-         C 193,528 183,534 170,530
-         C 157,524 150,512 150,496
-         L 148,474
-         C 145,460 136,450 122,448
-         C 106,446 92,452 82,464
-         C 72,476 74,492 86,500
-         C 100,508 118,504 130,494
-         C 140,484 140,468 136,454
-         C 130,436 126,416 124,398
-         C 121,378 122,360 130,342 Z"
-      fill="url(#g-land)"/>
-    <g opacity=".84" transform="translate(210,420)">
-      <polygon points="0,-24 -13,7 13,7"   fill="#3a0e04"/>
-      <polygon points="0,-24 -4,-9 4,-9"   fill="#ff5522" opacity=".70"/>
-      <circle cx="0" cy="-24" r="10" fill="#ff6600" opacity=".14">
+    <!-- 九州 forest overlay -->
+    <path d="M 664,782 C 688,774 714,778 732,796 C 748,814 748,840 732,860
+             C 716,878 690,890 662,894 C 634,898 606,888 586,870
+             C 568,852 566,826 582,808 C 598,790 628,782 664,782 Z"
+      fill="url(#g-forest)" opacity=".40" pointer-events="none"/>
+    <!-- 阿蘇山 volcano -->
+    <g opacity=".84" transform="translate(654,838)">
+      <polygon points="0,-28 -16,8 16,8" fill="#3a0e04"/>
+      <polygon points="0,-28 -5,-10 5,-10" fill="#ff5522" opacity=".70"/>
+      <circle cx="0" cy="-28" r="12" fill="#ff6600" opacity=".14">
         <animate attributeName="opacity" values=".14;.46;.14" dur="2.0s" repeatCount="indefinite"/>
-        <animate attributeName="r"       values="10;17;10"    dur="2.0s" repeatCount="indefinite"/>
+        <animate attributeName="r"       values="12;20;12"    dur="2.0s" repeatCount="indefinite"/>
       </circle>
     </g>
-    <g fill="#2d7a2d" opacity=".82">
-      <circle cx="198" cy="358" r="15"/><circle cx="214" cy="346" r="14"/>
-      <circle cx="184" cy="370" r="14"/><circle cx="228" cy="360" r="13"/>
-      <circle cx="204" cy="378" r="13"/><circle cx="240" cy="372" r="12"/>
-      <circle cx="192" cy="388" r="12"/>
+    <!-- 九州 forests -->
+    <g fill="#2d7a2d" opacity=".80">
+      <circle cx="616" cy="800" r="18"/><circle cx="638" cy="786" r="17"/>
+      <circle cx="600" cy="816" r="17"/><circle cx="654" cy="804" r="16"/>
     </g>
 
+    <!-- ── GOTO ISLANDS (五島列島 — west of Kyushu) ── -->
+    <ellipse cx="448" cy="806" rx="11" ry="20" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-land)" filter="url(#island-fx)" transform="rotate(-8,448,806)" opacity=".88"/>
+    <ellipse cx="432" cy="836" rx="8" ry="14" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-land)" opacity=".76" transform="rotate(-10,432,836)"/>
+    <ellipse cx="418" cy="862" rx="6" ry="11" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-land)" opacity=".68"/>
+
     <!-- ── PARIS ISLAND ── -->
-    <ellipse cx="75" cy="215" rx="30" ry="20"
-      stroke="#c8a84b" stroke-width="2" fill="url(#g-land)" filter="url(#shadow)"/>
-    <text x="75" y="244" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".75">PARIS</text>
+    <ellipse cx="500" cy="192" rx="46" ry="28"
+      stroke="#c8a84b" stroke-width="1.5" fill="url(#g-land)" filter="url(#island-fx)"/>
+    <text x="500" y="228" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".75">PARIS</text>
 
     <!-- ── ST. PETERSBURG ISLAND ── -->
-    <ellipse cx="180" cy="115" rx="30" ry="20"
-      stroke="#c8a84b" stroke-width="2" fill="url(#g-land)" filter="url(#shadow)"/>
-    <text x="180" y="144" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".75">ST.PETERSBURG</text>
+    <ellipse cx="612" cy="118" rx="46" ry="28"
+      stroke="#c8a84b" stroke-width="1.5" fill="url(#g-land)" filter="url(#island-fx)"/>
+    <text x="612" y="154" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".75">ST.PETERSBURG</text>
 
-    <!-- ── TSUSHIMA ── -->
-    <ellipse cx="204" cy="256" rx="9" ry="20"
-      stroke="#c8a84b" stroke-width="1.2" fill="url(#g-land)"/>
-
-    <!-- ── RYUKYU CHAIN ── -->
-    <ellipse cx="352" cy="490" rx="10" ry="22"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-5,352,490)"/>
-    <ellipse cx="323" cy="507" rx="13" ry="11"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
-    <ellipse cx="284" cy="524" rx="16" ry="9"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-18,284,524)"/>
-    <ellipse cx="252" cy="539" rx="10" ry="6"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
-    <path stroke="#c8a84b" stroke-width="1.4"
-      d="M 148,506 C 164,498 188,496 208,502
-         C 224,508 232,520 226,532
-         C 220,544 204,550 186,546
-         C 168,542 152,532 146,520
-         C 141,509 144,505 148,506 Z"
-      fill="url(#g-land)"/>
-    <ellipse cx="110" cy="549" rx="12" ry="6"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-8,110,549)"/>
-    <ellipse cx="82" cy="560" rx="11" ry="5"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)" transform="rotate(-12,82,560)"/>
-    <circle cx="60" cy="569" r="5"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-land)"/>
-
-    <!-- ── TAIWAN (partial) ── -->
-    <ellipse cx="100" cy="478" rx="14" ry="26"
-      stroke="#c8a84b" stroke-width="1.2" fill="url(#g-land)"
-      transform="rotate(-18,100,478)" opacity=".82"/>
-
-    <!-- ── PHILIPPINES: CEBU ── -->
-    <path filter="url(#shadow)"
-      stroke="#c8a84b" stroke-width="1.4"
-      d="M 56,608 L 58,600 L 62,593
-         C 66,587 73,584 79,588
-         C 85,592 86,603 84,615
-         L 82,625
-         C 80,635 74,641 66,641
-         C 58,641 54,633 53,623
-         C 52,615 54,610 56,608 Z"
-      fill="url(#g-tropical)"/>
-    <ellipse cx="42" cy="576" rx="11" ry="16"
-      stroke="#c8a84b" stroke-width="1" fill="url(#g-tropical)" opacity=".80"/>
+    <!-- ── PHILIPPINES: CEBU （長崎より南の独立島） ── -->
+    <ellipse cx="556" cy="938" rx="28" ry="16" stroke="#c8a84b" stroke-width="1.5"
+      fill="url(#g-tropical)" filter="url(#island-fx)" transform="rotate(-10,556,938)"/>
+    <ellipse cx="586" cy="950" rx="16" ry="10" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-tropical)" opacity=".82" transform="rotate(-8,586,950)"/>
+    <ellipse cx="532" cy="948" rx="10" ry="13" stroke="#c8a84b" stroke-width="0.8"
+      fill="url(#g-tropical)" opacity=".78" transform="rotate(12,532,948)"/>
 
 
     <!-- ══════════════════════════════════════ -->
@@ -1192,37 +1169,37 @@ html, body {
     <!-- ══════════════════════════════════════ -->
 
     <!-- ── NISEKO (ニセコ / Hokkaido) ── -->
-    <circle cx="672" cy="164" r="4" fill="#ffdd00" opacity=".7"/>
-    <line x1="672" y1="168" x2="672" y2="178" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
-    <text x="672" y="190" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">NISEKO</text>
+    <circle cx="906" cy="152" r="5" fill="#ffdd00" opacity=".7"/>
+    <line x1="906" y1="157" x2="906" y2="170" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="906" y="182" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".80">NISEKO</text>
 
     <!-- ── SHONAN (湘南 / Kanagawa) ── -->
-    <circle cx="748" cy="335" r="4" fill="#ffdd00" opacity=".7"/>
-    <line x1="748" y1="339" x2="748" y2="349" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
-    <text x="748" y="361" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">SHONAN</text>
+    <circle cx="1054" cy="494" r="5" fill="#ffdd00" opacity=".7"/>
+    <line x1="1054" y1="499" x2="1054" y2="512" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="1054" y="524" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".80">SHONAN</text>
 
     <!-- ── TENNOJI (天王寺 / Osaka) ── -->
-    <circle cx="512" cy="438" r="4" fill="#ffdd00" opacity=".7"/>
-    <line x1="512" y1="442" x2="512" y2="452" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
-    <text x="512" y="464" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">TENNOJI</text>
+    <circle cx="828" cy="716" r="5" fill="#ffdd00" opacity=".7"/>
+    <line x1="828" y1="721" x2="828" y2="734" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="828" y="746" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".80">TENNOJI</text>
 
-    <!-- ── ITOSHIMA (糸島 / Fukuoka) ── -->
-    <circle cx="148" cy="345" r="4" fill="#ffdd00" opacity=".7"/>
-    <line x1="148" y1="349" x2="148" y2="359" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
-    <text x="148" y="371" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">ITOSHIMA</text>
+    <!-- ── ITOSHIMA (糸島 / Kyushu北西 / Fukuoka) ── -->
+    <circle cx="534" cy="764" r="5" fill="#ffdd00" opacity=".7"/>
+    <line x1="534" y1="769" x2="534" y2="780" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="534" y="792" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".80">ITOSHIMA</text>
 
     <!-- ── CEBU (セブ / Philippines) ── -->
-    <circle cx="70" cy="613" r="4" fill="#ffdd00" opacity=".7"/>
-    <line x1="70" y1="617" x2="70" y2="627" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
-    <text x="70" y="639" text-anchor="middle"
-      font-family="'Press Start 2P',monospace" font-size="7" fill="#e8e8ff" opacity=".80">CEBU</text>
+    <circle cx="556" cy="918" r="5" fill="#ffdd00" opacity=".7"/>
+    <line x1="556" y1="913" x2="556" y2="923" stroke="#ffdd00" stroke-width="1" opacity=".5"/>
+    <text x="556" y="906" text-anchor="middle"
+      font-family="'Press Start 2P',monospace" font-size="8" fill="#e8e8ff" opacity=".80">CEBU</text>
 
-        <!-- ── COMPASS (pixel style) ── -->
-    <g transform="translate(928, 610)" opacity=".65">
+    <!-- ── COMPASS (pixel style) ── -->
+    <g transform="translate(1258, 920)" opacity=".65">
       <rect x="-22" y="-22" width="44" height="44" fill="none" stroke="#ffdd00" stroke-width="2"/>
       <line x1="0" y1="-18" x2="0" y2="18" stroke="#ffdd00" stroke-width="1.5"/>
       <line x1="-18" y1="0" x2="18" y2="0"  stroke="#ffdd00" stroke-width="1.5"/>
@@ -1232,17 +1209,46 @@ html, body {
     </g>
 
     <!-- ── SCALE ── -->
-    <g transform="translate(52, 648)" opacity=".5">
-      <line x1="0"  y1="0" x2="72" y2="0" stroke="#ffdd00" stroke-width="2"/>
+    <g transform="translate(52, 928)" opacity=".5">
+      <line x1="0"  y1="0" x2="90" y2="0" stroke="#ffdd00" stroke-width="2"/>
       <line x1="0"  y1="-5" x2="0"  y2="5" stroke="#ffdd00" stroke-width="2"/>
-      <line x1="72" y1="-5" x2="72" y2="5" stroke="#ffdd00" stroke-width="2"/>
-      <text x="36" y="-8" text-anchor="middle"
+      <line x1="90" y1="-5" x2="90" y2="5" stroke="#ffdd00" stroke-width="2"/>
+      <text x="45" y="-8" text-anchor="middle"
             font-family="'Press Start 2P',monospace" font-size="7" fill="#ffdd00">SCALE</text>
     </g>
   </svg>
 
   <!-- Markers -->
   <div id="markers"></div>
+
+  </div><!-- /map-container -->
+
+  <!-- Minimap -->
+  <div id="minimap">
+    <svg id="minimap-svg" viewBox="0 0 1300 960">
+      <rect width="1300" height="960" fill="#1a6fad" opacity=".5"/>
+      <!-- Hokkaido -->
+      <path d="M 836,240 C 816,226 798,208 794,186 C 790,164 800,140 820,124 C 840,108 870,98 904,94 C 938,90 974,98 1002,116 C 1030,134 1046,160 1042,186 C 1038,212 1020,234 994,250 C 968,266 934,274 900,272 C 866,270 838,248 836,240 Z" fill="#4caf50"/>
+      <!-- Honshu -->
+      <path d="M 764,278 C 800,264 870,260 950,268 C 1006,276 1058,302 1094,344 C 1120,376 1120,416 1100,454 C 1080,490 1046,516 1010,540 C 974,562 936,578 906,606 C 878,632 860,662 868,698 C 876,732 896,762 906,792 C 914,818 898,836 868,842 C 838,848 798,846 758,836 C 716,826 672,806 634,778 C 596,750 576,712 584,674 C 592,636 618,610 646,592 C 672,574 704,556 730,532 C 754,508 766,476 760,444 C 754,412 736,384 714,370 L 764,278 Z" fill="#4caf50"/>
+      <!-- Kyushu -->
+      <path d="M 628,782 C 652,772 680,770 706,784 C 730,798 738,826 728,852 C 718,876 696,892 670,902 C 644,912 614,916 584,910 C 554,904 526,888 506,864 C 488,840 488,812 504,788 C 520,764 548,752 580,752 C 610,752 626,770 628,782 Z" fill="#4caf50"/>
+      <!-- Goto Islands -->
+      <ellipse cx="448" cy="806" rx="11" ry="20" transform="rotate(-8,448,806)" fill="#4caf50" opacity=".86"/>
+      <ellipse cx="432" cy="836" rx="8" ry="14" fill="#4caf50" opacity=".74"/>
+      <!-- Paris -->
+      <ellipse cx="500" cy="192" rx="44" ry="27" fill="#4caf50"/>
+      <!-- St.Petersburg -->
+      <ellipse cx="612" cy="118" rx="44" ry="27" fill="#4caf50"/>
+      <!-- Cebu -->
+      <ellipse cx="556" cy="938" rx="26" ry="15" transform="rotate(-10,556,938)" fill="#4caf50"/>
+      <ellipse cx="586" cy="950" rx="15" ry="9" fill="#4caf50" opacity=".80"/>
+    </svg>
+    <div id="minimap-viewport"></div>
+  </div>
+
+  <!-- Scroll hint (初回のみ表示) -->
+  <div id="scroll-hint">← ドラッグで探索 →</div>
 
   <!-- Field transition overlay -->
   <div id="transition-overlay"></div>
@@ -1309,17 +1315,17 @@ html, body {
 //  MAP LAYOUT — 表示座標とアイコンのみ (ゲーム内容は games.json から取得)
 // =====================================================
 const MAP_LAYOUT = {
-  // status フィールドで games.json の内部ステータスを上書き可能
-  gachi_bunkasai:     { x: 61.5, y: 82.4, icon: '🏫', status: 'archived' }, // 下市/奈良南 → SVG(615,560)
-  densha_game_japan:  { x: 54,   y: 67.9, icon: '🚃', status: 'active'   }, // 難波 → SVG(540,462)
-  misdo_battle:       { x: 57.5, y: 75.3, icon: '🍩', status: 'archived' }, // 新今宮 → SVG(575,512)
-  natsu_no_nostalgia: { x: 14,   y: 50.5, icon: '⛩️' },                      // 糸島 → SVG(140,343)
-  fuyu_no_subliminal: { x: 67,   y: 24,   icon: '🏔️' },                      // ニセコ → SVG(670,163)
-  tokonatsu_no_okami: { x:  7,   y: 91,   icon: '🐺', status: 'archived' }, // セブ → SVG(70,619)
-  hitchhike_derby:    { x: 35,   y: 75,   icon: '🛣️' },                      // 種子島 → SVG(350,510)
-  push_the_friend:    { x: 45,   y: 63.9, icon: '👊', status: 'active'   }, // 芦屋 → SVG(450,435)
-  furo_kore:          { x: 75,   y: 46,   icon: '♨️' },                      // 東京 → SVG(750,313)
-  gendaibyo_clinic:   { x: 50,   y: 58.8, icon: '💊', status: 'archived' }, // 淀川沿い → SVG(500,400)
+  // x/y: markers div (1300×960) のパーセンテージ。SVG座標 = x%*1300/100, y%*960/100
+  gachi_bunkasai:     { x: 68.0, y: 78.5, icon: '🏫', status: 'archived' }, // 下市/奈良南   → SVG(884,754)
+  densha_game_japan:  { x: 64.8, y: 73.1, icon: '🚃', status: 'active'   }, // 難波          → SVG(842,702)
+  misdo_battle:       { x: 61.5, y: 76.5, icon: '🍩', status: 'archived' }, // 新今宮        → SVG(800,734)
+  natsu_no_nostalgia: { x: 41.1, y: 79.6, icon: '⛩️' },                      // 糸島(九州北西) → SVG(534,764)
+  fuyu_no_subliminal: { x: 69.7, y: 16.0, icon: '🏔️' },                      // ニセコ        → SVG(906,154)
+  tokonatsu_no_okami: { x: 42.8, y: 97.7, icon: '🐺', status: 'archived' }, // セブ島        → SVG(556,938)
+  hitchhike_derby:    { x: 48.5, y: 87.1, icon: '🛣️' },                      // 九州中部      → SVG(631,836)
+  push_the_friend:    { x: 55.8, y: 71.5, icon: '👊', status: 'active'   }, // 芦屋          → SVG(725,686)
+  furo_kore:          { x: 79.4, y: 51.0, icon: '♨️' },                      // 東京          → SVG(1032,490)
+  gendaibyo_clinic:   { x: 61.7, y: 71.7, icon: '💊', status: 'archived' }, // 淀川沿い      → SVG(802,688)
 };
 
 // internal_only.status → UI表示
@@ -1336,19 +1342,95 @@ let GAMES = [];
 //  INIT — games.json を fetch して描画
 // =====================================================
 // =====================================================
-//  RESPONSIVE — SVG letterbox に合わせてマーカー位置を補正
+//  SCROLL MAP + MINIMAP
 // =====================================================
-function repositionMarkers() {
-  const w = window.innerWidth, h = window.innerHeight;
-  // SVG viewBox 1000×680, preserveAspectRatio="xMidYMid meet"
-  const scale = Math.min(w / 1000, h / 680);
-  const rw = 1000 * scale, rh = 680 * scale;
-  const ox = (w - rw) / 2, oy = (h - rh) / 2;
-  const m = document.getElementById('markers');
-  m.style.left   = ox + 'px';
-  m.style.top    = oy + 'px';
-  m.style.width  = rw + 'px';
-  m.style.height = rh + 'px';
+const MAP_W = 1300, MAP_H = 960; // SVG 固定レンダーサイズ
+// 初期スクロール中心 — TENNOJI (SVG座標)
+const TENNOJI_X = 828, TENNOJI_Y = 716;
+
+// ── ミニマップ更新 ──
+function updateMinimap() {
+  const c  = document.getElementById('map-container');
+  const vp = document.getElementById('minimap-viewport');
+  const ms = document.getElementById('minimap-svg');
+  const mmW = ms.clientWidth  || 80;
+  const mmH = ms.clientHeight || 59;
+  const sx = mmW / MAP_W;
+  const sy = mmH / MAP_H;
+  vp.style.left   = (c.scrollLeft * sx) + 'px';
+  vp.style.top    = (c.scrollTop  * sy) + 'px';
+  vp.style.width  = (c.clientWidth  * sx) + 'px';
+  vp.style.height = (c.clientHeight * sy) + 'px';
+}
+
+// ── スクロール範囲をクランプ ──
+function clampScroll() {
+  const c = document.getElementById('map-container');
+  const maxL = Math.max(0, MAP_W - c.clientWidth);
+  const maxT = Math.max(0, MAP_H - c.clientHeight);
+  c.scrollLeft = Math.max(0, Math.min(c.scrollLeft, maxL));
+  c.scrollTop  = Math.max(0, Math.min(c.scrollTop,  maxT));
+}
+
+// ── 初期スクロール位置（TENNOJI中央）──
+function setInitialScroll() {
+  const c = document.getElementById('map-container');
+  c.scrollLeft = Math.max(0, TENNOJI_X - c.clientWidth  / 2);
+  c.scrollTop  = Math.max(0, TENNOJI_Y - c.clientHeight / 2);
+  updateMinimap();
+}
+
+// ── スクロールヒント（初回ドラッグで消える）──
+let _hintDone = false;
+function dismissHint() {
+  if (_hintDone) return;
+  _hintDone = true;
+  document.getElementById('scroll-hint').classList.add('hidden');
+}
+
+// ── ドラッグ（マウス + タッチ）──
+let hasDragged = false;
+function initDrag() {
+  const c = document.getElementById('map-container');
+  let dragging = false, moved = false;
+  let sx, sy, sl, st;
+
+  // Mouse
+  c.addEventListener('mousedown', e => {
+    dragging = true; moved = false;
+    sx = e.pageX; sy = e.pageY;
+    sl = c.scrollLeft; st = c.scrollTop;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.pageX - sx, dy = e.pageY - sy;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      moved = true; hasDragged = true; dismissHint();
+    }
+    c.scrollLeft = sl - dx;
+    c.scrollTop  = st - dy;
+    updateMinimap();
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+
+  // Touch
+  c.addEventListener('touchstart', e => {
+    dragging = true; moved = false;
+    sx = e.touches[0].pageX; sy = e.touches[0].pageY;
+    sl = c.scrollLeft; st = c.scrollTop;
+  }, { passive: true });
+  c.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const dx = e.touches[0].pageX - sx, dy = e.touches[0].pageY - sy;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      moved = true; hasDragged = true; dismissHint(); e.preventDefault();
+    }
+    c.scrollLeft = sl - dx;
+    c.scrollTop  = st - dy;
+    updateMinimap();
+  }, { passive: false });
+  c.addEventListener('touchend', () => { dragging = false; });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1362,8 +1444,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   buildMarkers();
   buildStaticMarkers();
-  repositionMarkers();
-  window.addEventListener('resize', repositionMarkers);
+  initDrag();
+  setInitialScroll();
+  window.addEventListener('resize', () => {
+    if (!hasDragged) {
+      setInitialScroll();
+    } else {
+      clampScroll();
+      updateMinimap();
+    }
+  });
   initModal();
 });
 
@@ -1371,8 +1461,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 //  STATIC MARKERS (games.json 不要の固定エントリ)
 // =====================================================
 const STATIC_LOCATIONS = [
-  { id: 'paris',          x:  7.5, y: 30,   icon: '🏰', label: 'パリ' },
-  { id: 'st_petersburg',  x: 18,   y: 16,   icon: '🏰', label: 'サンクトペテルブルク' },
+  { id: 'paris',          x: 38.5, y: 20.5, icon: '🏰', label: 'パリ' },          // SVG(500,197)
+  { id: 'st_petersburg',  x: 47.1, y: 12.8, icon: '🏰', label: 'サンクトペテルブルク' }, // SVG(612,123)
 ];
 
 function buildStaticMarkers() {
