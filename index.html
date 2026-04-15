@@ -988,7 +988,7 @@ html, body {
 
 /* ===== /ABOUT POPUP ===== */
 
-/* ===== FIELD TRANSITION (EXIT) ===== */
+/* ===== FIELD TRANSITION (world→field 離脱) ===== */
 #transition-overlay {
   position: fixed; inset: 0;
   background: #000010;
@@ -998,6 +998,18 @@ html, body {
   transition: opacity 0.32s ease-in;
 }
 #transition-overlay.active { opacity: 1; }
+
+/* field→world 帰還: ゆっくりフェードイン（入場より控えめ） */
+#transition-overlay.return-active {
+  opacity: 1;
+  pointer-events: none;
+  transition: none; /* 即黒にしてからフェード */
+}
+#transition-overlay.return-fading {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease-out;
+}
 
 @keyframes markerZoomOut {
   0%   { transform: translate(-50%, -100%) scale(1);   opacity: 1; }
@@ -1594,6 +1606,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   initModal();
+
+  // フィールドから戻ってきた場合: 黒 → ワールドマップへ緩やかフェードイン
+  if (new URLSearchParams(window.location.search).get('from') === 'field') {
+    const ov = document.getElementById('transition-overlay');
+    ov.classList.add('return-active');   // 即座に黒
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ov.classList.remove('return-active');
+      ov.classList.add('return-fading'); // 0.8s ease-out で透明へ
+    }));
+  }
 });
 
 // =====================================================

@@ -484,7 +484,7 @@ html, body {
 ::-webkit-scrollbar-thumb { background: rgba(0,188,212,.45); }
 ::-webkit-scrollbar-thumb:hover { background: rgba(0,188,212,.75); }
 
-/* ===== FIELD ENTRY ANIMATION ===== */
+/* ===== FIELD ENTRY ANIMATION (world→field) ===== */
 #entry-overlay {
   position: fixed; inset: 0;
   background: #000010;
@@ -494,6 +494,21 @@ html, body {
 @keyframes entryFadeOut {
   0%   { opacity: 1; }
   100% { opacity: 0; pointer-events: none; }
+}
+
+/* ===== FIELD EXIT ANIMATION (field→world) ===== */
+/* 入場より控えめな黒フェードアウト */
+#exit-overlay {
+  position: fixed; inset: 0;
+  background: #000010;
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in;
+}
+#exit-overlay.active {
+  opacity: 1;
+  pointer-events: all;
 }
 
 @keyframes worldReveal {
@@ -553,8 +568,10 @@ html, body {
     <button class="menu-btn" id="btn-back">← WORLD</button>
   </div>
 
-  <!-- Entry transition overlay -->
+  <!-- Entry transition overlay (world→field) -->
   <div id="entry-overlay"></div>
+  <!-- Exit transition overlay (field→world) -->
+  <div id="exit-overlay"></div>
 
   <!-- Field icon (top, display only) -->
   <div id="field-marker">
@@ -1353,8 +1370,14 @@ async function init() {
   }, 700);
 
   // ← WORLD ボタン
+  // ← WORLD ボタン: 黒フェードアウト後にワールドマップへ戻る
   document.getElementById('btn-back').addEventListener('click', () => {
-    window.location.href = 'index.html';
+    const ov = document.getElementById('exit-overlay');
+    ov.classList.add('active');
+    // フェード完了(0.5s)後に遷移。?from=field でワールドマップ側にフェードイン演出を渡す
+    setTimeout(() => {
+      window.location.href = 'index.html?from=field';
+    }, 520);
   });
 
   // ダイアログ: クリックで次の台詞 / 閉じる
