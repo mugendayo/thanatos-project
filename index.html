@@ -227,24 +227,49 @@ html, body {
 /* ===== THG MENU OVERLAY ===== */
 #thg-menu-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.75);
+  /* FF7R風：深い宇宙紺 + 放射状のグロー */
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 40%, rgba(10,30,80,0.55) 0%, transparent 70%),
+    linear-gradient(180deg, #02060f 0%, #030c1e 60%, #020810 100%);
+  /* スキャンライン */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.12) 2px,
+      rgba(0, 0, 0, 0.12) 3px
+    ),
+    radial-gradient(ellipse 80% 70% at 50% 40%, rgba(10,30,80,0.55) 0%, transparent 70%),
+    linear-gradient(180deg, #02060f 0%, #030c1e 60%, #020810 100%);
   z-index: 110;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
-  transition: opacity .2s ease;
+  transition: opacity .3s ease;
 }
 #thg-menu-overlay.open { opacity: 1; pointer-events: all; }
+#thg-menu-overlay.open #thg-menu-panel { transform: translateY(0); }
 
 #thg-menu-panel {
-  width: min(640px, 94vw);
-  max-height: min(520px, 88vh);
-  background: #0a1628;
+  /* 固定サイズ — タブ切替で枠が変わらないよう height を固定 */
+  width: min(720px, 92vw);
+  height: min(560px, 84svh);
+  /* FF7R風：深い青グラデーション + 上部に微細な光の帯 */
+  background: linear-gradient(160deg, #0d1f3c 0%, #081528 50%, #060f1e 100%);
   border: 2px solid #E85A2C;
   border-radius: 12px;
-  padding: 24px 28px 20px;
+  padding: 28px 32px 22px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(232,90,44,.25),
+    0 24px 64px rgba(0,0,0,.85),
+    inset 0 1px 0 rgba(80,160,255,.15),
+    inset 0 0 40px rgba(5,20,60,.6);
+  /* 下からスライドインする演出 */
+  transform: translateY(24px);
+  transition: transform .3s ease;
 }
 
 #thg-menu-body {
@@ -258,7 +283,8 @@ html, body {
 #thg-menu-list {
   width: 120px;
   flex-shrink: 0;
-  border-right: 1px solid #1A3A5C;
+  /* FF7R：縦のセパレーターは微細な青光り */
+  border-right: 1px solid rgba(40,100,200,.35);
   padding-right: 14px;
   display: flex;
   flex-direction: column;
@@ -266,19 +292,42 @@ html, body {
 .thg-menu-item {
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;
-  color: #aac4e0;
+  /* 非選択：くすんだ青白 */
+  color: #4a7ba8;
   padding: 11px 4px;
   cursor: pointer;
   letter-spacing: .06em;
   line-height: 1.7;
-  border-bottom: 1px solid #1A3A5C;
-  transition: color .1s;
+  border-bottom: 1px solid rgba(30,70,140,.3);
+  transition: color .15s, text-shadow .15s, background .15s;
   white-space: nowrap;
+  position: relative;
 }
 .thg-menu-item:last-child { border-bottom: none; }
-.thg-menu-item.active     { color: #E85A2C; }
+/* 選択中：FF7R 風 白グロー + 左から伸びる光の帯 */
+.thg-menu-item.active {
+  color: #ffffff;
+  text-shadow:
+    0 0 6px rgba(120,200,255,.9),
+    0 0 14px rgba(80,160,255,.5);
+  background: linear-gradient(90deg,
+    rgba(20,80,200,.35) 0%,
+    rgba(10,40,100,.18) 80%,
+    transparent 100%);
+}
+/* 左辺の光ライン（FF7R の青い選択バー） */
+.thg-menu-item.active::after {
+  content: '';
+  position: absolute;
+  left: -14px; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #7ecfff 0%, #2d8cff 50%, #7ecfff 100%);
+  box-shadow: 0 0 8px rgba(80,180,255,.8);
+}
 .thg-menu-item::before    { content: '　'; display: inline-block; width: 1em; }
-.thg-menu-item.active::before { content: '▶'; }
+.thg-menu-item.active::before { content: '▶'; color: #E85A2C; }
+/* ホバー時：少し明るく */
+.thg-menu-item:not(.active):hover { color: #8ab8d8; }
 
 #thg-menu-content {
   flex: 1;
@@ -291,14 +340,17 @@ html, body {
 .thg-pane-title {
   font-family: 'Press Start 2P', monospace;
   font-size: 8px;
-  color: #00bcd4;
+  /* FF7R：シアンのタイトル + グロー */
+  color: #7ecfff;
+  text-shadow: 0 0 10px rgba(126,207,255,.5);
   margin-bottom: 14px;
   letter-spacing: .08em;
   line-height: 1.6;
 }
 .thg-pane-body {
   font-size: 12px;
-  color: #e8e8ff;
+  /* 本文：やや青みがかった白 */
+  color: #c0d8ee;
   line-height: 2.1;
   white-space: pre-wrap;
 }
@@ -315,14 +367,14 @@ html, body {
 .mapkey-row {
   display: flex; align-items: center; gap: 10px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px; color: var(--rpg-text);
+  font-size: 7px; color: #c0d8ee;
   margin-bottom: 14px; line-height: 1.6;
 }
 
 #thg-menu-close {
   margin-top: 18px;
   padding-top: 14px;
-  border-top: 1px solid #1A3A5C;
+  border-top: 1px solid rgba(40,100,200,.3);
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;
   color: #E85A2C;
