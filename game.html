@@ -77,12 +77,11 @@ html, body {
 /* ===== HUD TOP ===== */
 #hud-top {
   position: absolute; top: 0; left: 0; right: 0;
-  height: 52px;
+  height: 40px;
   background: var(--menu-bg);
   border-bottom: 3px solid var(--rpg-border);
   display: flex; align-items: center; justify-content: center;
   z-index: 20;
-  /* クリック可能 */
   pointer-events: all;
   cursor: pointer;
   transition: background .2s;
@@ -97,27 +96,7 @@ html, body {
   letter-spacing: .10em;
   text-shadow: 2px 2px 0 #000033;
   text-align: center;
-  /* FF7R 風グロー点滅 — クリックを示唆 */
   animation: fieldTitlePulse 1.6s ease-in-out infinite;
-}
-.world-sub {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
-  color: var(--rpg-dim);
-  text-align: center;
-  margin-top: 4px;
-  letter-spacing: .1em;
-  animation: fieldSubPulse 1.6s ease-in-out infinite;
-}
-/* クリックヒント（点滅テキスト） */
-.hud-click-prompt {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
-  color: #7ecfff;
-  letter-spacing: .12em;
-  margin-top: 3px;
-  text-align: center;
-  animation: fieldSubPulse 1.6s ease-in-out infinite;
 }
 
 /* ===== FF7R 風タイトル点滅アニメーション ===== */
@@ -159,7 +138,7 @@ html, body {
 
 /* ===== LEFT MENU ===== */
 #left-menu {
-  position: absolute; top: 66px; left: 14px;
+  position: absolute; top: 54px; left: 14px;
   display: flex; flex-direction: column; gap: 6px;
   z-index: 20;
 }
@@ -484,6 +463,23 @@ html, body {
 ::-webkit-scrollbar-thumb { background: rgba(0,188,212,.45); }
 ::-webkit-scrollbar-thumb:hover { background: rgba(0,188,212,.75); }
 
+/* ===== SCENE HOTSPOT (field interactive objects) ===== */
+.scene-hotspot { cursor: pointer; }
+.scene-hotspot .obj-hint {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.scene-hotspot:hover .obj-hint { opacity: 1; }
+.hotspot-hover-glow {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.scene-hotspot:hover .hotspot-hover-glow { opacity: 0.12; }
+
+/* ===== STAGE TRANSITION ===== */
+#field-svg { transition: opacity 0.25s ease; }
+#field-svg.stage-fade { opacity: 0; }
+
 /* ===== FIELD ENTRY ANIMATION (world→field) ===== */
 #entry-overlay {
   position: fixed; inset: 0;
@@ -500,11 +496,11 @@ html, body {
 /* 入場より控えめな黒フェードアウト */
 #exit-overlay {
   position: fixed; inset: 0;
-  background: #000010;
+  background: rgba(0, 5, 30, 0.82);
   z-index: 300;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.5s ease-in;
+  transition: opacity 0.22s ease-in;
 }
 #exit-overlay.active {
   opacity: 1;
@@ -550,11 +546,7 @@ html, body {
 
   <!-- HUD top（クリックでゲーム詳細ポップアップ） -->
   <div id="hud-top">
-    <div>
-      <div class="world-title" id="field-title">LOADING...</div>
-      <div class="world-sub">THANATOS GAMES — FIELD</div>
-      <div class="hud-click-prompt">▼ CLICK FOR DETAIL</div>
-    </div>
+    <div class="world-title" id="field-title">LOADING...</div>
   </div>
 
   <!-- HUD bottom -->
@@ -1052,6 +1044,7 @@ const FIELD_THEMES = {
 
   // 💊 現代病クリニック — 曇り空の診療所
   gendaibyo_clinic: {
+    // ===== 外観: 病院建物 =====
     defs: `
       <linearGradient id="fg-sky" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%"   stop-color="#8090a8"/>
@@ -1060,42 +1053,214 @@ const FIELD_THEMES = {
       </linearGradient>`,
     scene: `
       <rect width="1000" height="680" fill="url(#fg-sky)"/>
-      <ellipse cx="200" cy="100" rx="180" ry="60" fill="#c0c8d4" opacity="0.7"/>
-      <ellipse cx="500" cy="80"  rx="200" ry="65" fill="#b8c0cc" opacity="0.6"/>
-      <ellipse cx="800" cy="110" rx="160" ry="55" fill="#c0c8d4" opacity="0.7"/>
-      <rect x="250" y="150" width="500" height="270" fill="#e8ecf0"/>
-      <rect x="250" y="150" width="500" height="270" fill="none" stroke="#c0ccd8" stroke-width="3"/>
-      <rect x="240" y="140" width="520" height="18" fill="#d0d8e4"/>
-      <rect x="270" y="180" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
-      <rect x="320" y="180" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
-      <rect x="370" y="180" width="40" height="35" fill="#90c0e0" opacity="0.7"/>
-      <rect x="420" y="180" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
-      <rect x="470" y="180" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
-      <rect x="520" y="180" width="40" height="35" fill="#90c0e0" opacity="0.7"/>
-      <rect x="570" y="180" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
-      <rect x="620" y="180" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
-      <rect x="670" y="180" width="40" height="35" fill="#90c0e0" opacity="0.7"/>
-      <rect x="270" y="230" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
-      <rect x="370" y="230" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
-      <rect x="470" y="230" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
-      <rect x="570" y="230" width="40" height="35" fill="#90c0e0" opacity="0.6"/>
-      <rect x="670" y="230" width="40" height="35" fill="#90c0e0" opacity="0.5"/>
-      <rect x="465" y="280" width="70" height="70" fill="#cc0000"/>
-      <rect x="465" y="280" width="70" height="70" fill="none" stroke="#ff2222" stroke-width="2"/>
-      <rect x="482" y="288" width="36" height="54" fill="white"/>
-      <rect x="470" y="300" width="60" height="30" fill="white"/>
-      <rect x="430" y="360" width="140" height="60" fill="#c0d8ec" opacity="0.8"/>
-      <rect x="430" y="360" width="140" height="60" fill="none" stroke="#90b8d4" stroke-width="2"/>
-      <line x1="500" y1="360" x2="500" y2="420" stroke="#90b8d4" stroke-width="2"/>
-      <rect x="340" y="138" width="320" height="20" fill="#1a3a6a"/>
-      <text x="500" y="153" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7" fill="white">GENDAIBYO CLINIC</text>
-      <rect x="430" y="420" width="140" height="260" fill="#d0d8e0"/>
-      <line x1="500" y1="420" x2="500" y2="680" stroke="#c0c8d0" stroke-width="2" opacity="0.5"/>
-      <rect x="0" y="420" width="1000" height="260" fill="#d4dce4"/>
-      <line x1="0" y1="460" x2="1000" y2="460" stroke="#c4ccd4" stroke-width="1"/>
-      <line x1="0" y1="500" x2="1000" y2="500" stroke="#c4ccd4" stroke-width="1"/>
-      <ellipse cx="240" cy="428" rx="30" ry="18" fill="#4a7a28" opacity="0.7"/>
-      <ellipse cx="760" cy="428" rx="30" ry="18" fill="#4a7a28" opacity="0.7"/>`,
+      <ellipse cx="150" cy="80"  rx="120" ry="38" fill="#d4dce8" opacity="0.7"/>
+      <ellipse cx="500" cy="60"  rx="160" ry="44" fill="#ccd4e0" opacity="0.6"/>
+      <ellipse cx="860" cy="90"  rx="110" ry="34" fill="#d4dce8" opacity="0.65"/>
+      <rect x="0" y="430" width="1000" height="250" fill="#8aaa70"/>
+      <rect x="0" y="425" width="1000" height="12" fill="#a0b480" opacity="0.7"/>
+      <rect x="420" y="430" width="160" height="250" fill="#c8b888" opacity="0.6"/>
+      <g class="scene-hotspot" data-scene="interior" style="cursor:pointer">
+        <rect x="185" y="115" width="630" height="24" fill="#c8d4e4"/>
+        <rect x="200" y="130" width="600" height="310" fill="#eceef2"/>
+        <rect x="200" y="130" width="600" height="310" fill="none" stroke="#c0ccd8" stroke-width="3"/>
+        <rect x="230" y="158" width="44" height="38" fill="#90c0e0" opacity="0.65"/>
+        <rect x="290" y="158" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="350" y="158" width="44" height="38" fill="#90c0e0" opacity="0.7"/>
+        <rect x="410" y="158" width="44" height="38" fill="#90c0e0" opacity="0.6"/>
+        <rect x="470" y="158" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="530" y="158" width="44" height="38" fill="#90c0e0" opacity="0.65"/>
+        <rect x="590" y="158" width="44" height="38" fill="#90c0e0" opacity="0.6"/>
+        <rect x="650" y="158" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="710" y="158" width="44" height="38" fill="#90c0e0" opacity="0.65"/>
+        <rect x="230" y="216" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="350" y="216" width="44" height="38" fill="#90c0e0" opacity="0.6"/>
+        <rect x="470" y="216" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="590" y="216" width="44" height="38" fill="#90c0e0" opacity="0.55"/>
+        <rect x="710" y="216" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="230" y="274" width="44" height="38" fill="#90c0e0" opacity="0.55"/>
+        <rect x="350" y="274" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="590" y="274" width="44" height="38" fill="#90c0e0" opacity="0.5"/>
+        <rect x="710" y="274" width="44" height="38" fill="#90c0e0" opacity="0.55"/>
+        <rect x="464" y="254" width="72" height="22" fill="#cc0000"/>
+        <rect x="486" y="234" width="28" height="62" fill="#cc0000"/>
+        <rect x="310" y="115" width="380" height="22" fill="#1a3a6a"/>
+        <text x="500" y="131" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8" fill="white">GENDAIBYO CLINIC</text>
+        <rect x="428" y="378" width="144" height="62" fill="#c0d8ec" opacity="0.9"/>
+        <line x1="500" y1="378" x2="500" y2="440" stroke="#90b8d4" stroke-width="2"/>
+        <rect x="420" y="372" width="160" height="12" fill="#8aaccc"/>
+        <rect x="200" y="115" width="600" height="325" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <text x="500" y="358" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="11" fill="#ffdd00" class="obj-hint">▼ 中へ進む</text>
+      </g>
+      <ellipse cx="125" cy="430" rx="55" ry="40" fill="#4a8030"/>
+      <ellipse cx="875" cy="432" rx="55" ry="38" fill="#4a8030"/>
+      <rect x="118" y="430" width="14" height="60" fill="#6a5030"/>
+      <rect x="868" y="432" width="14" height="58" fill="#6a5030"/>`,
+
+    // ===== 内部: 淀川河川敷キャンプ =====
+    interiorDefs: `
+      <linearGradient id="clinic-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#6ab4e8"/>
+        <stop offset="100%" stop-color="#b8ddf5"/>
+      </linearGradient>
+      <linearGradient id="yodo-water" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#4a8faa"/>
+        <stop offset="100%" stop-color="#3a7a98"/>
+      </linearGradient>`,
+    interiorScene: `
+      <rect width="1000" height="680" fill="url(#clinic-sky)"/>
+      <ellipse cx="100"  cy="72"  rx="100" ry="32" fill="white" opacity="0.75"/>
+      <ellipse cx="165"  cy="62"  rx="75"  ry="28" fill="white" opacity="0.65"/>
+      <ellipse cx="420"  cy="52"  rx="120" ry="36" fill="white" opacity="0.7"/>
+      <ellipse cx="700"  cy="78"  rx="105" ry="30" fill="white" opacity="0.72"/>
+      <ellipse cx="910"  cy="58"  rx="80"  ry="26" fill="white" opacity="0.68"/>
+      <rect x="0"   y="215" width="1000" height="20"  fill="#9aacbc"/>
+      <rect x="0"   y="210" width="1000" height="6"   fill="#7a8ca0"/>
+      <rect x="148" y="215" width="18"   height="70"  fill="#8a9cac"/>
+      <rect x="348" y="215" width="18"   height="70"  fill="#8a9cac"/>
+      <rect x="548" y="215" width="18"   height="70"  fill="#8a9cac"/>
+      <rect x="748" y="215" width="18"   height="70"  fill="#8a9cac"/>
+      <rect x="0"   y="233" width="1000" height="35"  fill="#5a8050"/>
+      <rect x="0"   y="264" width="1000" height="175" fill="url(#yodo-water)"/>
+      <line x1="50"  y1="288" x2="220" y2="292" stroke="#5aaacf" stroke-width="1.5" opacity="0.45"/>
+      <line x1="300" y1="308" x2="520" y2="303" stroke="#5aaacf" stroke-width="1.5" opacity="0.4"/>
+      <line x1="620" y1="326" x2="840" y2="320" stroke="#5aaacf" stroke-width="1.5" opacity="0.4"/>
+      <line x1="0"   y1="352" x2="180" y2="356" stroke="#5aaacf" stroke-width="1"   opacity="0.3"/>
+      <line x1="420" y1="368" x2="650" y2="362" stroke="#5aaacf" stroke-width="1"   opacity="0.3"/>
+      <rect x="0"   y="434" width="1000" height="246" fill="#6a9448"/>
+      <rect x="0"   y="432" width="1000" height="16"  fill="#c4a870"/>
+      <ellipse cx="210" cy="448" rx="85"  ry="18" fill="#5a8440" opacity="0.45"/>
+      <ellipse cx="620" cy="458" rx="110" ry="14" fill="#5a8440" opacity="0.4"/>
+      <ellipse cx="860" cy="445" rx="75"  ry="16" fill="#5a8440" opacity="0.45"/>
+
+      <g id="obj-tent-sauna" class="scene-hotspot" data-obj="tent_sauna">
+        <rect x="78" y="390" width="200" height="180" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <polygon points="90,530 175,392 260,530"   fill="#a04010"/>
+        <polygon points="104,530 175,406 246,530"  fill="#c05015"/>
+        <polygon points="148,530 175,448 202,530"  fill="#1a0800" opacity="0.85"/>
+        <polygon points="148,530 168,465 190,505 190,530" fill="#8a3010" opacity="0.7"/>
+        <rect x="163" y="420" width="24"  height="6"   fill="#ff3333"/>
+        <rect x="172" y="411" width="6"   height="24"  fill="#ff3333"/>
+        <path d="M160,390 Q153,372 160,354 Q167,336 160,320" stroke="white" stroke-width="2.5" fill="none" opacity="0.5" stroke-linecap="round"/>
+        <path d="M178,387 Q173,368 179,351 Q185,334 179,318" stroke="white" stroke-width="2"   fill="none" opacity="0.38" stroke-linecap="round"/>
+        <polygon points="90,530 175,392 260,530" fill="#ffcc00" opacity="0" class="hotspot-hover-glow"/>
+        <text x="175" y="554" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7"  fill="#ffdd00">集中治療室</text>
+        <text x="175" y="568" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="9"  fill="#cccccc" opacity="0.8">テントサウナ</text>
+        <text x="175" y="370" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint">▼ 話しかける</text>
+      </g>
+
+      <g id="obj-nurse" class="scene-hotspot" data-obj="nurse">
+        <rect x="278" y="388" width="100" height="165" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <rect x="288" y="455" width="82"  height="8"   fill="#cc8800" rx="2"/>
+        <rect x="295" y="463" width="8"   height="40"  fill="#aa7700"/>
+        <rect x="358" y="463" width="8"   height="40"  fill="#aa7700"/>
+        <rect x="325" y="386" width="4"   height="70"  fill="#888888"/>
+        <path d="M297,404 Q327,386 357,404" fill="#cc2222" stroke="#aa1111" stroke-width="1"/>
+        <path d="M297,404 Q327,416 357,404" fill="#cc2222"/>
+        <rect x="298" y="446" width="22"  height="10"  fill="white"   opacity="0.9"/>
+        <rect x="325" y="446" width="22"  height="10"  fill="white"   opacity="0.9"/>
+        <ellipse cx="332" cy="416" rx="11" ry="12"    fill="#f5c8a8"/>
+        <rect x="321" y="428" width="22"  height="28"  fill="white"/>
+        <rect x="323" y="428" width="18"  height="5"   fill="#cc2222"/>
+        <rect x="324" y="408" width="16"  height="6"   fill="white"/>
+        <rect x="327" y="403" width="10"  height="6"   fill="white"/>
+        <rect x="278" y="388" width="100" height="165" fill="#ffcc00" opacity="0" class="hotspot-hover-glow"/>
+        <text x="332" y="520" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7"  fill="#ffdd00">受付</text>
+        <text x="332" y="534" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="9"  fill="#cccccc" opacity="0.8">看護師</text>
+        <text x="332" y="374" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint">▼ 話しかける</text>
+      </g>
+
+      <g id="obj-doctor" class="scene-hotspot" data-obj="doctor">
+        <rect x="406" y="415" width="90" height="150" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <rect x="418" y="462" width="62"  height="40"  fill="#cc8844" rx="3"/>
+        <rect x="428" y="452" width="42"  height="35"  fill="#dd9955" rx="2"/>
+        <line x1="422" y1="502" x2="416" y2="522" stroke="#996633" stroke-width="3"/>
+        <line x1="476" y1="502" x2="482" y2="522" stroke="#996633" stroke-width="3"/>
+        <ellipse cx="449" cy="432" rx="12" ry="13"   fill="#f5c8a8"/>
+        <rect x="435" y="445" width="28"  height="30"  fill="#3a4a8a"/>
+        <rect x="433" y="445" width="6"   height="30"  fill="white"   opacity="0.8"/>
+        <rect x="459" y="445" width="6"   height="30"  fill="white"   opacity="0.8"/>
+        <rect x="461" y="452" width="18"  height="22"  fill="#f5f0e0" rx="1"/>
+        <rect x="465" y="456" width="10"  height="2"   fill="#999"    opacity="0.7"/>
+        <rect x="465" y="461" width="10"  height="2"   fill="#999"    opacity="0.7"/>
+        <rect x="465" y="466" width="7"   height="2"   fill="#999"    opacity="0.7"/>
+        <rect x="406" y="415" width="90"  height="150" fill="#ffcc00" opacity="0" class="hotspot-hover-glow"/>
+        <text x="449" y="555" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7"  fill="#ffdd00">院長室</text>
+        <text x="449" y="568" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="9"  fill="#cccccc" opacity="0.8">診察室</text>
+        <text x="449" y="400" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint">▼ 話しかける</text>
+      </g>
+
+      <g id="obj-ramen" class="scene-hotspot" data-obj="ramen_kitchen">
+        <rect x="538" y="355" width="192" height="215" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <rect x="548" y="444" width="160" height="10"  fill="#a06030" rx="2"/>
+        <rect x="555" y="454" width="8"   height="48"  fill="#805020"/>
+        <rect x="692" y="454" width="8"   height="48"  fill="#805020"/>
+        <line x1="555" y1="454" x2="700" y2="502" stroke="#805020" stroke-width="3"/>
+        <line x1="700" y1="454" x2="555" y2="502" stroke="#805020" stroke-width="3"/>
+        <rect x="557" y="428" width="48"  height="18"  fill="#555555" rx="3"/>
+        <rect x="564" y="422" width="32"  height="9"   fill="#444444" rx="2"/>
+        <ellipse cx="581" cy="422" rx="24"  ry="10"   fill="#3a3a3a"/>
+        <rect x="557" y="411" width="48"  height="14"  fill="#444444" rx="2"/>
+        <path d="M567,410 Q562,396 568,382 Q574,368 568,355" stroke="white" stroke-width="2"   fill="none" opacity="0.5"  stroke-linecap="round"/>
+        <path d="M581,409 Q578,394 583,380 Q587,366 582,354" stroke="white" stroke-width="1.5" fill="none" opacity="0.38" stroke-linecap="round"/>
+        <rect x="554" y="388" width="46"  height="17"  fill="#cc1111"/>
+        <text x="577" y="400" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="11" fill="white"   font-weight="bold">二郎</text>
+        <rect x="645" y="428" width="48"  height="18"  fill="#555555" rx="3"/>
+        <rect x="652" y="422" width="32"  height="9"   fill="#444444" rx="2"/>
+        <ellipse cx="669" cy="422" rx="24"  ry="10"   fill="#3a3a3a"/>
+        <rect x="645" y="411" width="48"  height="14"  fill="#444444" rx="2"/>
+        <path d="M655,410 Q650,396 656,382 Q662,368 656,355" stroke="white" stroke-width="2"   fill="none" opacity="0.5"  stroke-linecap="round"/>
+        <path d="M670,409 Q667,394 672,380 Q676,366 671,354" stroke="white" stroke-width="1.5" fill="none" opacity="0.38" stroke-linecap="round"/>
+        <rect x="642" y="388" width="52"  height="17"  fill="#cc6611"/>
+        <text x="668" y="400" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="11" fill="white"   font-weight="bold">家系</text>
+        <ellipse cx="573" cy="466" rx="11"  ry="12"   fill="#f5c8a8"/>
+        <rect x="561" y="478" width="24"  height="28"  fill="#8a4a20"/>
+        <rect x="563" y="460" width="20"  height="7"   fill="#cc2222"/>
+        <ellipse cx="672" cy="466" rx="11"  ry="12"   fill="#f5c8a8"/>
+        <rect x="660" y="478" width="24"  height="28"  fill="#8a4a20"/>
+        <rect x="662" y="460" width="20"  height="7"   fill="#cc2222"/>
+        <rect x="538" y="355" width="192" height="215" fill="#ffcc00" opacity="0" class="hotspot-hover-glow"/>
+        <text x="634" y="565" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7"  fill="#ffdd00">劇薬調理場</text>
+        <text x="634" y="578" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="9"  fill="#cccccc" opacity="0.8">ラーメン厨房</text>
+        <text x="634" y="338" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint">▼ 話しかける</text>
+      </g>
+
+      <g id="obj-chairs" class="scene-hotspot" data-obj="infinity_chairs">
+        <rect x="742" y="448" width="200" height="120" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <rect x="752" y="468" width="68"  height="30"  fill="#2a4a8a" rx="4"/>
+        <rect x="810" y="458" width="28"  height="42"  fill="#2a4a8a" rx="3"/>
+        <ellipse cx="778" cy="460" rx="11"  ry="12"   fill="#f5c8a8"/>
+        <rect x="768" y="465" width="58"  height="20"  fill="#3a5090" rx="3" opacity="0.8"/>
+        <rect x="858" y="468" width="68"  height="30"  fill="#2a6a4a" rx="4"/>
+        <rect x="916" y="458" width="28"  height="42"  fill="#2a6a4a" rx="3"/>
+        <ellipse cx="884" cy="460" rx="11"  ry="12"   fill="#f5c8a8"/>
+        <rect x="874" y="465" width="58"  height="20"  fill="#3a7a5a" rx="3" opacity="0.8"/>
+        <rect x="742" y="448" width="200" height="120" fill="#ffcc00" opacity="0" class="hotspot-hover-glow"/>
+        <text x="850" y="568" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7"  fill="#ffdd00">ととのいブース</text>
+        <text x="850" y="581" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="9"  fill="#cccccc" opacity="0.8">インフィニティチェア</text>
+        <text x="850" y="432" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint">▼ 話しかける</text>
+      </g>
+
+      <g id="obj-patients" class="scene-hotspot" data-obj="patients">
+        <rect x="30"  y="454" width="90"  height="80"  fill="white" opacity="0.001" style="pointer-events:all"/>
+        <ellipse cx="52"  cy="466" rx="9"   ry="10"   fill="#f5c8a8"/>
+        <rect x="42"  y="476" width="20"  height="22"  fill="#6a8aaa"/>
+        <ellipse cx="84"  cy="470" rx="9"   ry="10"   fill="#e8b090"/>
+        <rect x="74"  y="480" width="20"  height="22"  fill="#8a6a9a"/>
+        <ellipse cx="398" cy="548" rx="9"   ry="10"   fill="#f5c8a8"/>
+        <rect x="388" y="558" width="20"  height="20"  fill="#6a9a6a"/>
+        <ellipse cx="505" cy="542" rx="9"   ry="10"   fill="#e8b090"/>
+        <rect x="495" y="552" width="20"  height="20"  fill="#aa8844"/>
+        <rect x="30"  y="454" width="90"  height="80"  fill="#ffcc00" opacity="0" class="hotspot-hover-glow"/>
+        <text x="68"  y="528" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7"  fill="#ffdd00">待合室</text>
+        <text x="68"  y="541" text-anchor="middle" font-family="'Noto Serif JP',serif"      font-size="9"  fill="#cccccc" opacity="0.8">現代病患者</text>
+        <text x="68"  y="438" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint">▼ 話しかける</text>
+      </g>
+
+      <g id="obj-river" class="scene-hotspot" data-obj="yodogawa">
+        <rect x="0" y="264" width="1000" height="175" fill="white" opacity="0.001" style="pointer-events:all"/>
+        <text x="500" y="312" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="9"  fill="white"   opacity="0.55">YODOGAWA RIVER</text>
+        <text x="500" y="245" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8"  fill="#ffdd00" class="obj-hint" opacity="0">▼</text>
+      </g>`,
   },
 };
 
@@ -1214,6 +1379,110 @@ const CHARACTER_DATA = {
 };
 
 // =====================================================
+//  CLINIC INTERACTIVE OBJECTS
+// =====================================================
+const CLINIC_OBJECTS = {
+  tent_sauna: {
+    id: 'tent_sauna',
+    name: '医療スタッフ',
+    dialogues: [
+      'ようこそ集中治療室（テントサウナ）へ。',
+      '現代病の症状には——スマホを置けない病、24時間稼働の脳、他人の目線アレルギー……',
+      'このサウナで、あなたの現代病を一時的に治癒します。\n温度は90℃。時間は10分。準備はいいですか？',
+    ]
+  },
+  nurse: {
+    id: 'nurse',
+    name: '看護師',
+    dialogues: [
+      'いらっしゃいませ。こちらが現代病専門クリニックです。',
+      '本日の患者さんは全員、現代社会の呪いを背負ってここへやってきました。',
+      '院長は奥にいます。\nまずは受付を済ませましょう——問診票に名前をどうぞ。',
+    ]
+  },
+  doctor: {
+    id: 'doctor',
+    name: '院長',
+    dialogues: [
+      'ふむ。脈拍は正常。だが目の下のクマが気になる。',
+      '今日の処方箋は——\n淀川の風と、サウナと、二郎系ラーメン。',
+      'これは医療だ。そしてゲームだ。\nいや、これがTHANATOS GAMESの治療法だ。',
+    ]
+  },
+  ramen_kitchen: {
+    id: 'ramen_kitchen',
+    name: '調理師',
+    dialogues: [
+      '二郎ブース、家系ブース——今日の劇薬は万全の状態で提供します。',
+      'この一杯が現代病を悪化させるか、治癒させるか……\n食べてみないとわからない。',
+      'ニンニク入れますか？',
+    ]
+  },
+  infinity_chairs: {
+    id: 'infinity_chairs',
+    name: 'ととのい中の患者',
+    dialogues: [
+      '……（目を閉じている）',
+      'ああ——サウナ → 淀川 → この椅子。\nこれが公式ルートです。',
+      'ととのった。',
+    ]
+  },
+  patients: {
+    id: 'patients',
+    name: '現代病患者',
+    dialogues: [
+      'SNS疲れで来ました。\n診断名は「スクロール依存症」とのことで。',
+      'みんな同じ病気なのに、ここに来たら急に繋がれた気がします。',
+      '次のイベント、絶対来ます。',
+    ]
+  },
+  yodogawa: {
+    id: 'yodogawa',
+    name: '淀川',
+    dialogues: [
+      '大阪市此花区——淀川の河川敷。',
+      'ここはゲームの会場であり、クリニックであり、治療の場だ。',
+      '川は黙って、全部を流す。',
+    ]
+  },
+};
+
+// =====================================================
+//  STAGE SYSTEM（clinic: exterior ⇔ interior）
+// =====================================================
+let clinicStage = 'exterior';
+
+function enterClinicInterior() {
+  const svg = document.getElementById('field-svg');
+  svg.classList.add('stage-fade');
+  setTimeout(() => {
+    const theme = FIELD_THEMES.gendaibyo_clinic;
+    document.getElementById('field-defs').innerHTML  = theme.interiorDefs  || '';
+    document.getElementById('field-scene').innerHTML = theme.interiorScene || '';
+    clinicStage = 'interior';
+    document.getElementById('btn-back').textContent = '← ENTRANCE';
+    svg.classList.remove('stage-fade');
+    attachSceneHotspots();
+  }, 250);
+}
+
+function exitClinicInterior() {
+  const svg = document.getElementById('field-svg');
+  closeDialogue();
+  svg.classList.add('stage-fade');
+  setTimeout(() => {
+    const theme = FIELD_THEMES.gendaibyo_clinic;
+    document.getElementById('field-defs').innerHTML  = theme.defs   || '';
+    document.getElementById('field-scene').innerHTML = theme.scene  || '';
+    clinicStage = 'exterior';
+    document.getElementById('btn-back').textContent = '← WORLD';
+    svg.classList.remove('stage-fade');
+    attachExteriorHotspot();
+  }, 250);
+}
+
+
+// =====================================================
 //  FIELD RENDER
 // =====================================================
 function renderField(game) {
@@ -1229,6 +1498,27 @@ function renderField(game) {
   document.title = game.ui_display.title + ' — THANATOS GAMES';
 
   buildCharacters(game);
+
+  // clinic: フィールドSVG全体でイベントデリゲーション
+  if (game.game_id === 'gendaibyo_clinic') {
+    clinicStage = 'exterior';
+    document.getElementById('field-svg').addEventListener('click', e => {
+      // 外観: 病院グループクリック → 内部へ
+      if (clinicStage === 'exterior') {
+        const sceneEl = e.target.closest('[data-scene="interior"]');
+        if (sceneEl) enterClinicInterior();
+        return;
+      }
+      // 内部: オブジェクトクリック → ダイアログ
+      if (clinicStage === 'interior') {
+        const objEl = e.target.closest('[data-obj]');
+        if (objEl) {
+          const obj = CLINIC_OBJECTS[objEl.dataset.obj];
+          if (obj) openDialogue(obj, null);
+        }
+      }
+    });
+  }
 }
 
 // =====================================================
@@ -1271,7 +1561,7 @@ function openDialogue(char, spriteEl) {
   _dlgChar = char;
   _dlgLine = 0;
 
-  const hint = document.getElementById('hint-' + char.id);
+  const hint = char.id ? document.getElementById('hint-' + char.id) : null;
   if (hint) hint.classList.add('done');
 
   document.getElementById('dlg-name').textContent = char.name;
@@ -1335,7 +1625,7 @@ function closeDialogue() {
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const gameId = params.get('id');
-  if (!gameId) { window.location.href = 'index.html'; return; }
+  if (!gameId) { window.location.href = './?from=field'; return; }
 
   let game;
   try {
@@ -1346,7 +1636,7 @@ async function init() {
     console.error('games.json の読み込みに失敗しました:', e);
   }
 
-  if (!game) { window.location.href = 'index.html'; return; }
+  if (!game) { window.location.href = './?from=field'; return; }
 
   renderField(game);
 
@@ -1369,15 +1659,19 @@ async function init() {
     if (eo) eo.remove();
   }, 700);
 
-  // ← WORLD ボタン
-  // ← WORLD ボタン: 黒フェードアウト後にワールドマップへ戻る
+  // ← WORLD / ← ENTRANCE ボタン
   document.getElementById('btn-back').addEventListener('click', () => {
+    // clinic 内部にいるときは外観へ戻る
+    if (clinicStage === 'interior') {
+      exitClinicInterior();
+      return;
+    }
+    // それ以外はワールドマップへ
     const ov = document.getElementById('exit-overlay');
     ov.classList.add('active');
-    // フェード完了(0.5s)後に遷移。?from=field でワールドマップ側にフェードイン演出を渡す
     setTimeout(() => {
-      window.location.href = 'index.html?from=field';
-    }, 520);
+      window.location.href = './?from=field';
+    }, 240);
   });
 
   // ダイアログ: クリックで次の台詞 / 閉じる

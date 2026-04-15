@@ -7,6 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>ThanatosGames — World Portfolio</title>
+<script>if(location.search.includes('from=field'))document.documentElement.dataset.return='1';</script>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /* ===== RESET ===== */
@@ -991,7 +992,7 @@ html, body {
 /* ===== FIELD TRANSITION (world→field 離脱) ===== */
 #transition-overlay {
   position: fixed; inset: 0;
-  background: #000010;
+  background: rgba(0, 5, 30, 0.82);
   z-index: 300;
   opacity: 0;
   pointer-events: none;
@@ -999,16 +1000,16 @@ html, body {
 }
 #transition-overlay.active { opacity: 1; }
 
-/* field→world 帰還: ゆっくりフェードイン（入場より控えめ） */
-#transition-overlay.return-active {
-  opacity: 1;
+/* field→world 帰還: HTMLレンダリング前から即座にオーバーレイを表示してフラッシュを防ぐ */
+html[data-return="1"] #transition-overlay {
+  opacity: 0.88;
+  transition: none;
   pointer-events: none;
-  transition: none; /* 即黒にしてからフェード */
 }
-#transition-overlay.return-fading {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.8s ease-out;
+/* 帰還中にゲームアイコンをクリックした場合も正常に遷移できるよう active を優先 */
+html[data-return="1"] #transition-overlay.active {
+  opacity: 1;
+  transition: opacity 0.32s ease-in;
 }
 
 @keyframes markerZoomOut {
@@ -1607,14 +1608,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   initModal();
 
-  // フィールドから戻ってきた場合: 黒 → ワールドマップへ緩やかフェードイン
-  if (new URLSearchParams(window.location.search).get('from') === 'field') {
-    const ov = document.getElementById('transition-overlay');
-    ov.classList.add('return-active');   // 即座に黒
+  // フィールドから戻ってきた場合: スクロール位置確定後にフェードアウト
+  if (document.documentElement.dataset.return === '1') {
+    // data-return を削除するだけで CSS が opacity 0.88→0 (0.32s ease-in) にトランジション
+    // !important なし → .active クラスが inline より低優先 → 正常に上書き可能
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      ov.classList.remove('return-active');
-      ov.classList.add('return-fading'); // 0.8s ease-out で透明へ
+      delete document.documentElement.dataset.return;
     }));
+  }
+});
+
+// BFCache 復元時にオーバーレイ状態をリセット（ブラウザ戻るボタン対応）
+window.addEventListener('pageshow', e => {
+  if (e.persisted) {
+    const ov = document.getElementById('transition-overlay');
+    ov.classList.remove('active');
+    ov.style.transition = 'none';
+    ov.style.opacity = '0';
+    delete document.documentElement.dataset.return;
+    requestAnimationFrame(() => {
+      ov.style.transition = '';
+      ov.style.opacity = '';
+    });
   }
 });
 
@@ -1670,7 +1685,7 @@ function buildMarkers() {
       el.classList.add('zooming');
       document.getElementById('transition-overlay').classList.add('active');
       setTimeout(() => {
-        window.location.href = 'game.html?id=' + game.game_id;
+        window.location.href = './game?id=' + game.game_id;
       }, 320);
     });
     wrap.appendChild(el);
