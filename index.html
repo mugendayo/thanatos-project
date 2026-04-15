@@ -1685,7 +1685,7 @@ function buildMarkers() {
       el.classList.add('zooming');
       document.getElementById('transition-overlay').classList.add('active');
       setTimeout(() => {
-        window.location.href = './game?id=' + game.game_id;
+        window.location.href = './game.html?id=' + game.game_id;
       }, 320);
     });
     wrap.appendChild(el);
