@@ -516,6 +516,170 @@ html, body {
 }
 /* ===== /FIELD ENTRY ANIMATION ===== */
 
+/* ===== 2D SIDE SCROLLER (clinic interior) ===== */
+#side-scroller {
+  display: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 10;
+  background: linear-gradient(
+    to bottom,
+    #7ec8e8 0%, #b0dcf4 45%,
+    #4a8260 45%, #4a8260 49%,
+    #6a9448 49%, #5a8040 100%
+  );
+}
+#side-scroller.active { display: block; }
+
+/* Far parallax layer (clouds, distant treeline) */
+#ss-far {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 8000px;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* World layer (ground strip + NPCs) — scrolled by camera */
+#ss-world {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 8000px;
+  height: 100%;
+  will-change: transform;
+}
+#ss-ground-strip {
+  position: absolute;
+  bottom: 38px; left: 0;
+  width: 8000px; height: 52px;
+  background: #6a9448;
+  border-top: 3px solid #c4a870;
+}
+
+/* NPC objects */
+.ss-npc {
+  position: absolute;
+  bottom: 88px;
+  text-align: center;
+  cursor: pointer;
+}
+.ss-npc-exclaim {
+  position: absolute;
+  top: -28px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px; color: #ffdd00;
+  text-shadow: 2px 2px 0 #000;
+  opacity: 0; pointer-events: none;
+  animation: exclaimBounce 0.55s ease-in-out infinite;
+  transition: opacity 0.2s;
+}
+.ss-npc.active .ss-npc-exclaim { opacity: 1; }
+.ss-npc.active { filter: drop-shadow(0 0 7px rgba(255,220,0,0.75)); }
+@keyframes exclaimBounce {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-5px); }
+}
+.ss-npc-label {
+  display: block;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 5px; color: #ffdd00;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap; margin-top: 5px;
+}
+.ss-npc-sublabel {
+  display: block;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 8px; color: rgba(255,255,255,0.72);
+  white-space: nowrap;
+}
+
+/* NPC part: shared head / body */
+.npc-head {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #f5c8a8; margin: 0 auto;
+  border: 1px solid #d4a888;
+}
+.npc-body { margin: 0 auto; border-radius: 2px; }
+
+/* Player character */
+#ss-player {
+  position: absolute;
+  bottom: 88px;
+  width: 28px;
+  z-index: 15;
+  pointer-events: none;
+  will-change: left;
+}
+.ss-char { text-align: center; }
+.ss-char-head {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #f5c8a8; margin: 0 auto;
+  border: 2px solid #d4a888;
+  position: relative;
+}
+.ss-char-head::before {
+  content: '';
+  position: absolute;
+  top: -5px; left: 2px;
+  width: 18px; height: 9px;
+  background: #5a3a1a; border-radius: 50% 50% 0 0;
+}
+.ss-char-body {
+  width: 16px; height: 22px; border-radius: 2px;
+  background: #4a90d9; margin: 0 auto;
+}
+.ss-char-legs { display: flex; justify-content: center; gap: 2px; }
+.ss-char-leg {
+  width: 7px; height: 16px;
+  background: #2a4a8a;
+  border-radius: 0 0 2px 2px;
+  transform-origin: top center;
+}
+.ss-char.walking .ss-char-leg:nth-child(1) { animation: legSwingL 0.35s ease-in-out infinite; }
+.ss-char.walking .ss-char-leg:nth-child(2) { animation: legSwingR 0.35s ease-in-out infinite; }
+.ss-char.flip { transform: scaleX(-1); }
+@keyframes legSwingL {
+  0%,100% { transform: rotate(20deg); }
+  50%      { transform: rotate(-20deg); }
+}
+@keyframes legSwingR {
+  0%,100% { transform: rotate(-20deg); }
+  50%      { transform: rotate(20deg); }
+}
+
+/* D-pad */
+#ss-dpad {
+  display: none;
+  position: fixed;
+  bottom: 50px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+#ss-dpad.active { display: flex; }
+#ss-dpad.paused { display: none !important; }
+.ss-dpad-btn {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(0, 15, 50, 0.88);
+  border: 2px solid var(--rpg-border);
+  color: var(--rpg-yellow);
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 0 12px rgba(136,136,255,0.3);
+  transition: background 0.1s, transform 0.1s;
+  touch-action: manipulation;
+}
+.ss-dpad-btn.pressed {
+  background: rgba(0, 80, 140, 0.92);
+  transform: scale(0.9);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 580px) {
   .m-body { flex-direction: column; }
@@ -574,6 +738,31 @@ html, body {
   <!-- Characters -->
   <div id="characters"></div>
 
+  <!-- 2D Side Scroller (clinic interior) -->
+  <div id="side-scroller">
+    <div id="ss-far"></div>
+    <div id="ss-world">
+      <div id="ss-ground-strip"></div>
+      <div id="ss-npcs"></div>
+    </div>
+    <div id="ss-player">
+      <div class="ss-char" id="ss-char">
+        <div class="ss-char-head"></div>
+        <div class="ss-char-body"></div>
+        <div class="ss-char-legs">
+          <div class="ss-char-leg"></div>
+          <div class="ss-char-leg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- D-pad (clinic interior) -->
+<div id="ss-dpad">
+  <button class="ss-dpad-btn" id="ss-btn-l" aria-label="左へ">◀</button>
+  <button class="ss-dpad-btn" id="ss-btn-r" aria-label="右へ">▶</button>
 </div>
 
 <!-- ========== DIALOGUE BOX ========== -->
@@ -1448,6 +1637,303 @@ const CLINIC_OBJECTS = {
 };
 
 // =====================================================
+//  2D SIDE SCROLLER — CLINIC INTERIOR
+// =====================================================
+const SS_WORLD_W   = 2600;  // world width (px)
+const SS_SPEED     = 3.8;   // px / frame
+const SS_PROXIMITY = 155;   // proximity to activate NPC
+
+// NPC 配置（worldX = NPC 中心のワールド座標）
+const SS_NPC_DATA = [
+  {
+    id: 'patients',    worldX: 180,  width: 70,
+    label: '待合室', sublabel: '現代病患者', name: '現代病患者',
+    dialogues: CLINIC_OBJECTS.patients.dialogues,
+    visual() {
+      return `<div style="display:flex;gap:10px;justify-content:center;align-items:flex-end">
+        <div><div class="npc-head"></div><div class="npc-body" style="background:#6a8aaa;width:16px;height:20px"></div></div>
+        <div><div class="npc-head" style="background:#e8b090"></div><div class="npc-body" style="background:#8a6a9a;width:16px;height:20px"></div></div>
+      </div>`;
+    }
+  },
+  {
+    id: 'tent_sauna', worldX: 480,  width: 100,
+    label: '集中治療室', sublabel: 'テントサウナ', name: '医療スタッフ',
+    dialogues: CLINIC_OBJECTS.tent_sauna.dialogues,
+    visual() {
+      return `<div style="position:relative;width:90px;margin:0 auto">
+        <div style="width:0;height:0;border-left:45px solid transparent;border-right:45px solid transparent;border-bottom:82px solid #c05015;margin:0 auto;position:relative">
+          <div style="position:absolute;top:18px;left:-13px;width:26px;height:7px;background:#ff3333"></div>
+          <div style="position:absolute;top:10px;left:-4px;width:8px;height:23px;background:#ff3333"></div>
+          <div style="position:absolute;top:-22px;left:-2px;width:3px;height:24px;background:rgba(255,255,255,0.45);border-radius:2px"></div>
+          <div style="position:absolute;top:-28px;left:3px;width:3px;height:28px;background:rgba(255,255,255,0.3);border-radius:2px"></div>
+        </div>
+      </div>`;
+    }
+  },
+  {
+    id: 'nurse',       worldX: 780,  width: 80,
+    label: '受付', sublabel: '看護師', name: '看護師',
+    dialogues: CLINIC_OBJECTS.nurse.dialogues,
+    visual() {
+      return `<div>
+        <div class="npc-head"></div>
+        <div class="npc-body" style="background:white;width:18px;height:22px;border:1px solid #ddd"></div>
+        <div style="width:64px;height:7px;background:#cc8800;margin:6px auto 0;border-radius:1px;position:relative">
+          <div style="position:absolute;bottom:-20px;left:4px;width:6px;height:20px;background:#aa7700"></div>
+          <div style="position:absolute;bottom:-20px;right:4px;width:6px;height:20px;background:#aa7700"></div>
+        </div>
+      </div>`;
+    }
+  },
+  {
+    id: 'doctor',      worldX: 1070, width: 80,
+    label: '院長室', sublabel: '診察室', name: '院長',
+    dialogues: CLINIC_OBJECTS.doctor.dialogues,
+    visual() {
+      return `<div>
+        <div class="npc-head"></div>
+        <div class="npc-body" style="background:#3a4a8a;width:18px;height:22px"></div>
+        <div style="width:58px;height:22px;background:#cc8844;border-radius:4px;margin:4px auto 0;position:relative">
+          <div style="position:absolute;top:-20px;right:-2px;width:20px;height:24px;background:#cc8844;border-radius:3px"></div>
+          <div style="position:absolute;bottom:-14px;left:5px;width:8px;height:14px;background:#aa6622"></div>
+          <div style="position:absolute;bottom:-14px;right:5px;width:8px;height:14px;background:#aa6622"></div>
+        </div>
+      </div>`;
+    }
+  },
+  {
+    id: 'ramen_kitchen', worldX: 1380, width: 130,
+    label: '劇薬調理場', sublabel: 'ラーメン厨房', name: '調理師',
+    dialogues: CLINIC_OBJECTS.ramen_kitchen.dialogues,
+    visual() {
+      return `<div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:3px">
+          <div style="background:#cc1111;color:white;font-family:'Noto Serif JP',serif;font-size:11px;font-weight:bold;padding:1px 5px;border-radius:1px">二郎</div>
+          <div style="background:#cc6611;color:white;font-family:'Noto Serif JP',serif;font-size:11px;font-weight:bold;padding:1px 5px;border-radius:1px">家系</div>
+        </div>
+        <div style="display:flex;gap:6px;justify-content:center">
+          <div style="width:34px;height:20px;background:#333;border-radius:3px;position:relative">
+            <div style="position:absolute;top:-4px;left:3px;width:28px;height:6px;background:#444;border-radius:2px"></div>
+            <div style="position:absolute;top:-16px;left:8px;width:2px;height:14px;background:rgba(255,255,255,0.4);border-radius:2px"></div>
+          </div>
+          <div style="width:34px;height:20px;background:#333;border-radius:3px;position:relative">
+            <div style="position:absolute;top:-4px;left:3px;width:28px;height:6px;background:#444;border-radius:2px"></div>
+            <div style="position:absolute;top:-16px;left:8px;width:2px;height:14px;background:rgba(255,255,255,0.4);border-radius:2px"></div>
+          </div>
+        </div>
+        <div style="width:110px;height:7px;background:#a06030;margin:4px auto 0;border-radius:1px"></div>
+        <div style="display:flex;gap:18px;justify-content:center;margin-top:3px">
+          <div><div class="npc-head" style="width:16px;height:16px"></div><div class="npc-body" style="background:#8a4a20;width:14px;height:18px"></div></div>
+          <div><div class="npc-head" style="width:16px;height:16px"></div><div class="npc-body" style="background:#8a4a20;width:14px;height:18px"></div></div>
+        </div>
+      </div>`;
+    }
+  },
+  {
+    id: 'infinity_chairs', worldX: 1720, width: 110,
+    label: 'ととのいブース', sublabel: 'インフィニティチェア', name: 'ととのい中の患者',
+    dialogues: CLINIC_OBJECTS.infinity_chairs.dialogues,
+    visual() {
+      return `<div style="display:flex;gap:10px;justify-content:center">
+        <div>
+          <div class="npc-head" style="width:16px;height:16px"></div>
+          <div style="width:50px;height:22px;background:#2a4a8a;border-radius:4px;position:relative;margin-top:2px">
+            <div style="position:absolute;top:-20px;right:-2px;width:18px;height:24px;background:#2a4a8a;border-radius:3px"></div>
+            <div style="position:absolute;bottom:-12px;left:4px;width:7px;height:12px;background:#1a3070"></div>
+            <div style="position:absolute;bottom:-12px;right:4px;width:7px;height:12px;background:#1a3070"></div>
+          </div>
+        </div>
+        <div>
+          <div class="npc-head" style="width:16px;height:16px;background:#e8b090"></div>
+          <div style="width:50px;height:22px;background:#2a6a4a;border-radius:4px;position:relative;margin-top:2px">
+            <div style="position:absolute;top:-20px;right:-2px;width:18px;height:24px;background:#2a6a4a;border-radius:3px"></div>
+            <div style="position:absolute;bottom:-12px;left:4px;width:7px;height:12px;background:#1a5034"></div>
+            <div style="position:absolute;bottom:-12px;right:4px;width:7px;height:12px;background:#1a5034"></div>
+          </div>
+        </div>
+      </div>`;
+    }
+  },
+  {
+    id: 'yodogawa',    worldX: 2080, width: 80,
+    label: '淀川', sublabel: 'YODOGAWA RIVER', name: '淀川',
+    dialogues: CLINIC_OBJECTS.yodogawa.dialogues,
+    visual() {
+      return `<div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#7ecfff;text-shadow:0 0 8px rgba(126,207,255,0.6);white-space:nowrap;padding:10px 6px;border:1px solid rgba(126,207,255,0.4);background:rgba(0,30,60,0.55);line-height:2">
+        YODOGAWA<br>RIVER
+      </div>`;
+    }
+  },
+];
+
+// ── ゲーム状態 ──
+const ssState = {
+  playerX: 40, facingRight: true, moving: false,
+  keyL: false, keyR: false, raf: null,
+};
+const _ssH = {}; // event handler refs
+
+function buildSsNpcs() {
+  const container = document.getElementById('ss-npcs');
+  container.innerHTML = SS_NPC_DATA.map(npc => `
+    <div class="ss-npc" id="ss-npc-${npc.id}"
+         style="left:${npc.worldX - (npc.width||80)/2}px;width:${npc.width||80}px"
+         data-npc="${npc.id}">
+      <div class="ss-npc-exclaim">!</div>
+      ${npc.visual()}
+      <span class="ss-npc-label">${npc.label}</span>
+      <span class="ss-npc-sublabel">${npc.sublabel}</span>
+    </div>`).join('');
+}
+
+function buildSsFar() {
+  const clouds = [
+    {x:100,y:18,w:120,h:30},{x:520,y:42,w:95,h:26},{x:980,y:16,w:150,h:36},
+    {x:1400,y:38,w:110,h:28},{x:1850,y:20,w:138,h:32},{x:2280,y:44,w:102,h:26},
+    {x:2720,y:28,w:128,h:30},{x:3180,y:16,w:118,h:28},{x:3650,y:40,w:104,h:25},
+  ];
+  const farEl = document.getElementById('ss-far');
+  farEl.innerHTML =
+    clouds.map(c =>
+      `<div style="position:absolute;left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background:rgba(255,255,255,0.76);border-radius:60px;"></div>`
+    ).join('') +
+    `<div style="position:absolute;bottom:0;left:0;width:100%;height:32px;background:#3a6a2a;opacity:0.45;"></div>`;
+}
+
+function initSideScroller() {
+  ssState.playerX = 40; ssState.facingRight = true;
+  ssState.moving = false; ssState.keyL = ssState.keyR = false;
+
+  buildSsNpcs();
+  buildSsFar();
+
+  // NPC click
+  document.getElementById('ss-npcs').addEventListener('click', e => {
+    const el = e.target.closest('.ss-npc');
+    if (!el || !el.classList.contains('active')) return;
+    const npc = SS_NPC_DATA.find(n => n.id === el.dataset.npc);
+    if (npc) openDialogue({ id: npc.id, name: npc.name, dialogues: npc.dialogues }, null);
+  });
+
+  document.getElementById('side-scroller').classList.add('active');
+  document.getElementById('ss-dpad').classList.add('active');
+  setupSsInput();
+  ssState.raf = requestAnimationFrame(ssLoop);
+}
+
+function destroySideScroller() {
+  if (ssState.raf) { cancelAnimationFrame(ssState.raf); ssState.raf = null; }
+  document.getElementById('side-scroller').classList.remove('active');
+  document.getElementById('ss-dpad').classList.remove('active');
+  document.getElementById('ss-npcs').innerHTML = '';
+  document.getElementById('ss-far').innerHTML  = '';
+  teardownSsInput();
+  closeDialogue();
+}
+
+// ── 入力 ──
+function setupSsInput() {
+  _ssH.kd = e => {
+    if (e.key === 'ArrowLeft'  || e.key === 'a') ssState.keyL = true;
+    if (e.key === 'ArrowRight' || e.key === 'd') ssState.keyR = true;
+  };
+  _ssH.ku = e => {
+    if (e.key === 'ArrowLeft'  || e.key === 'a') ssState.keyL = false;
+    if (e.key === 'ArrowRight' || e.key === 'd') ssState.keyR = false;
+  };
+  document.addEventListener('keydown', _ssH.kd);
+  document.addEventListener('keyup',   _ssH.ku);
+
+  const btnL = document.getElementById('ss-btn-l');
+  const btnR = document.getElementById('ss-btn-r');
+  _ssH.pL = e => { e.preventDefault(); ssState.keyL = true;  btnL.classList.add('pressed'); };
+  _ssH.rL = ()=> { ssState.keyL = false; btnL.classList.remove('pressed'); };
+  _ssH.pR = e => { e.preventDefault(); ssState.keyR = true;  btnR.classList.add('pressed'); };
+  _ssH.rR = ()=> { ssState.keyR = false; btnR.classList.remove('pressed'); };
+  btnL.addEventListener('mousedown',   _ssH.pL);
+  btnL.addEventListener('touchstart',  _ssH.pL, { passive: false });
+  btnL.addEventListener('mouseup',     _ssH.rL);
+  btnL.addEventListener('mouseleave',  _ssH.rL);
+  btnL.addEventListener('touchend',    _ssH.rL);
+  btnL.addEventListener('touchcancel', _ssH.rL);
+  btnR.addEventListener('mousedown',   _ssH.pR);
+  btnR.addEventListener('touchstart',  _ssH.pR, { passive: false });
+  btnR.addEventListener('mouseup',     _ssH.rR);
+  btnR.addEventListener('mouseleave',  _ssH.rR);
+  btnR.addEventListener('touchend',    _ssH.rR);
+  btnR.addEventListener('touchcancel', _ssH.rR);
+  _ssH.blur = () => { ssState.keyL = ssState.keyR = false; btnL.classList.remove('pressed'); btnR.classList.remove('pressed'); };
+  window.addEventListener('blur', _ssH.blur);
+}
+
+function teardownSsInput() {
+  document.removeEventListener('keydown', _ssH.kd);
+  document.removeEventListener('keyup',   _ssH.ku);
+  window.removeEventListener('blur', _ssH.blur);
+  const btnL = document.getElementById('ss-btn-l');
+  const btnR = document.getElementById('ss-btn-r');
+  if (_ssH.pL) {
+    btnL.removeEventListener('mousedown',  _ssH.pL);
+    btnL.removeEventListener('touchstart', _ssH.pL);
+    btnL.removeEventListener('mouseup',    _ssH.rL);
+    btnL.removeEventListener('mouseleave', _ssH.rL);
+    btnL.removeEventListener('touchend',   _ssH.rL);
+    btnL.removeEventListener('touchcancel',_ssH.rL);
+    btnR.removeEventListener('mousedown',  _ssH.pR);
+    btnR.removeEventListener('touchstart', _ssH.pR);
+    btnR.removeEventListener('mouseup',    _ssH.rR);
+    btnR.removeEventListener('mouseleave', _ssH.rR);
+    btnR.removeEventListener('touchend',   _ssH.rR);
+    btnR.removeEventListener('touchcancel',_ssH.rR);
+  }
+}
+
+// ── ゲームループ ──
+function ssLoop() {
+  const dlgOpen = document.getElementById('dialogue-box').classList.contains('open');
+  const dpad    = document.getElementById('ss-dpad');
+
+  if (dlgOpen) {
+    dpad.classList.add('paused');
+    ssState.moving = false;
+  } else {
+    dpad.classList.remove('paused');
+    if (ssState.keyL && ssState.playerX > 20) {
+      ssState.playerX -= SS_SPEED;
+      ssState.facingRight = false; ssState.moving = true;
+    } else if (ssState.keyR && ssState.playerX < SS_WORLD_W - 20) {
+      ssState.playerX += SS_SPEED;
+      ssState.facingRight = true;  ssState.moving = true;
+    } else {
+      ssState.moving = false;
+    }
+  }
+
+  // Proximity check
+  SS_NPC_DATA.forEach(npc => {
+    const el = document.getElementById('ss-npc-' + npc.id);
+    if (el) el.classList.toggle('active', Math.abs(ssState.playerX - npc.worldX) < SS_PROXIMITY);
+  });
+
+  // Render
+  const scroller = document.getElementById('side-scroller');
+  const vpW      = scroller.clientWidth;
+  const camX     = Math.max(0, Math.min(ssState.playerX - vpW * 0.35, SS_WORLD_W - vpW));
+
+  document.getElementById('ss-world').style.transform = `translateX(${-camX}px)`;
+  document.getElementById('ss-far').style.transform   = `translateX(${-camX * 0.38}px)`;
+
+  const playerEl = document.getElementById('ss-player');
+  const charEl   = document.getElementById('ss-char');
+  playerEl.style.left = (ssState.playerX - camX - 14) + 'px';
+  charEl.classList.toggle('walking', ssState.moving);
+  charEl.classList.toggle('flip',   !ssState.facingRight);
+
+  ssState.raf = requestAnimationFrame(ssLoop);
+}
+
+// =====================================================
 //  STAGE SYSTEM（clinic: exterior ⇔ interior）
 // =====================================================
 let clinicStage = 'exterior';
@@ -1456,28 +1942,21 @@ function enterClinicInterior() {
   const svg = document.getElementById('field-svg');
   svg.classList.add('stage-fade');
   setTimeout(() => {
-    const theme = FIELD_THEMES.gendaibyo_clinic;
-    document.getElementById('field-defs').innerHTML  = theme.interiorDefs  || '';
-    document.getElementById('field-scene').innerHTML = theme.interiorScene || '';
     clinicStage = 'interior';
     document.getElementById('btn-back').textContent = '← ENTRANCE';
     svg.classList.remove('stage-fade');
-    attachSceneHotspots();
+    initSideScroller();
   }, 250);
 }
 
 function exitClinicInterior() {
+  destroySideScroller();
   const svg = document.getElementById('field-svg');
-  closeDialogue();
   svg.classList.add('stage-fade');
   setTimeout(() => {
-    const theme = FIELD_THEMES.gendaibyo_clinic;
-    document.getElementById('field-defs').innerHTML  = theme.defs   || '';
-    document.getElementById('field-scene').innerHTML = theme.scene  || '';
     clinicStage = 'exterior';
     document.getElementById('btn-back').textContent = '← WORLD';
     svg.classList.remove('stage-fade');
-    attachExteriorHotspot();
   }, 250);
 }
 
