@@ -525,9 +525,10 @@ html, body {
   z-index: 10;
   background: linear-gradient(
     to bottom,
-    #7ec8e8 0%, #b0dcf4 45%,
-    #4a8260 45%, #4a8260 49%,
-    #6a9448 49%, #5a8040 100%
+    #7ec8e8 0%, #b0dcf4 30%,
+    #5baed4 30%, #3a88bb 36%,
+    #2a5a8a 36%, #3a6a2a 40%,
+    #5a8040 40%, #4a7030 100%
   );
 }
 #side-scroller.active { display: block; }
@@ -553,7 +554,7 @@ html, body {
 #ss-ground-strip {
   position: absolute;
   bottom: 38px; left: 0;
-  width: 8000px; height: 52px;
+  width: 8000px; height: 92px;
   background: #6a9448;
   border-top: 3px solid #c4a870;
 }
@@ -561,7 +562,7 @@ html, body {
 /* NPC objects */
 .ss-npc {
   position: absolute;
-  bottom: 88px;
+  bottom: 132px;
   text-align: center;
   cursor: pointer;
 }
@@ -607,7 +608,7 @@ html, body {
 /* Player character */
 #ss-player {
   position: absolute;
-  bottom: 88px;
+  bottom: 132px;
   width: 28px;
   z-index: 15;
   pointer-events: none;
@@ -679,6 +680,30 @@ html, body {
   background: rgba(0, 80, 140, 0.92);
   transform: scale(0.9);
 }
+
+/* ===== DIALOGUE CHOICES ===== */
+#dlg-choices {
+  display: none;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+#dlg-choices.visible { display: flex; }
+.dlg-choice-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: #000033;
+  background: var(--rpg-yellow);
+  border: 2px solid #ccaa00;
+  padding: 8px 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: .08em;
+  transition: background 0.1s, transform 0.1s;
+}
+.dlg-choice-btn:hover { background: #ffe850; transform: scale(1.05); }
+.dlg-choice-btn:active { transform: scale(0.96); }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 580px) {
@@ -770,6 +795,7 @@ html, body {
   <div class="dlg-inner">
     <div class="dlg-name" id="dlg-name"></div>
     <div class="dlg-text" id="dlg-text"></div>
+    <div id="dlg-choices"></div>
     <div class="dlg-next" id="dlg-next">▼ CLICK</div>
     <button class="dlg-close" id="dlg-close">✕</button>
   </div>
@@ -1639,9 +1665,9 @@ const CLINIC_OBJECTS = {
 // =====================================================
 //  2D SIDE SCROLLER — CLINIC INTERIOR
 // =====================================================
-const SS_WORLD_W   = 2600;  // world width (px)
+const SS_WORLD_W   = 1700;  // world width (px)
 const SS_SPEED     = 3.8;   // px / frame
-const SS_PROXIMITY = 155;   // proximity to activate NPC
+const SS_PROXIMITY = 120;   // proximity to activate NPC
 
 // NPC 配置（worldX = NPC 中心のワールド座標）
 const SS_NPC_DATA = [
@@ -1657,7 +1683,7 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'tent_sauna', worldX: 480,  width: 100,
+    id: 'tent_sauna', worldX: 360,  width: 100,
     label: '集中治療室', sublabel: 'テントサウナ', name: '医療スタッフ',
     dialogues: CLINIC_OBJECTS.tent_sauna.dialogues,
     visual() {
@@ -1672,7 +1698,7 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'nurse',       worldX: 780,  width: 80,
+    id: 'nurse',       worldX: 540,  width: 80,
     label: '受付', sublabel: '看護師', name: '看護師',
     dialogues: CLINIC_OBJECTS.nurse.dialogues,
     visual() {
@@ -1687,7 +1713,7 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'doctor',      worldX: 1070, width: 80,
+    id: 'doctor',      worldX: 720, width: 80,
     label: '院長室', sublabel: '診察室', name: '院長',
     dialogues: CLINIC_OBJECTS.doctor.dialogues,
     visual() {
@@ -1703,7 +1729,7 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'ramen_kitchen', worldX: 1380, width: 130,
+    id: 'ramen_kitchen', worldX: 950, width: 130,
     label: '劇薬調理場', sublabel: 'ラーメン厨房', name: '調理師',
     dialogues: CLINIC_OBJECTS.ramen_kitchen.dialogues,
     visual() {
@@ -1731,7 +1757,7 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'infinity_chairs', worldX: 1720, width: 110,
+    id: 'infinity_chairs', worldX: 1190, width: 110,
     label: 'ととのいブース', sublabel: 'インフィニティチェア', name: 'ととのい中の患者',
     dialogues: CLINIC_OBJECTS.infinity_chairs.dialogues,
     visual() {
@@ -1756,12 +1782,24 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'yodogawa',    worldX: 2080, width: 80,
-    label: '淀川', sublabel: 'YODOGAWA RIVER', name: '淀川',
-    dialogues: CLINIC_OBJECTS.yodogawa.dialogues,
+    id: 'hint_man',    worldX: 1490, width: 60,
+    label: 'ヒントマン', sublabel: 'HINT MAN', name: 'ヒントマン',
+    dialogues: [
+      '…。',
+      'ひとつだけ、教えてあげよう。',
+      'このゲームの制作の裏側を覗ける、映像がある。',
+      '見てみるか？',
+    ],
+    choices: [
+      { label: 'YES', action: 'openYouTube' },
+      { label: 'NO',  action: 'closeDialogue' },
+    ],
     visual() {
-      return `<div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#7ecfff;text-shadow:0 0 8px rgba(126,207,255,0.6);white-space:nowrap;padding:10px 6px;border:1px solid rgba(126,207,255,0.4);background:rgba(0,30,60,0.55);line-height:2">
-        YODOGAWA<br>RIVER
+      return `<div style="text-align:center;filter:drop-shadow(0 0 8px rgba(136,136,255,0.8))">
+        <div style="width:22px;height:22px;border-radius:50%;background:#0a0a1e;border:2px solid #8888ff;margin:0 auto;position:relative;box-shadow:0 0 10px rgba(136,136,255,0.5)">
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);font-family:'Press Start 2P',monospace;font-size:8px;color:#8888ff;text-shadow:0 0 6px #aaaaff">?</div>
+        </div>
+        <div style="width:16px;height:26px;background:#0a0a2e;margin:1px auto;border-radius:2px;border:1px solid #6666cc;box-shadow:0 0 8px rgba(100,100,220,0.4)"></div>
       </div>`;
     }
   },
@@ -2048,13 +2086,35 @@ function openDialogue(char, spriteEl) {
   typeText(char.dialogues[0]);
 }
 
+function showDlgChoices(choices) {
+  const nextEl    = document.getElementById('dlg-next');
+  const choicesEl = document.getElementById('dlg-choices');
+  nextEl.classList.remove('visible');
+  choicesEl.innerHTML = choices.map(c =>
+    `<button class="dlg-choice-btn" data-action="${c.action}">${c.label}</button>`
+  ).join('');
+  choicesEl.classList.add('visible');
+  choicesEl.querySelectorAll('.dlg-choice-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (btn.dataset.action === 'openYouTube') {
+        window.open('https://youtu.be/yjYuciqh8HE?si=mI5i7yRzIlPts-xS', '_blank');
+      }
+      closeDialogue();
+    });
+  });
+}
+
 function typeText(text) {
   clearInterval(_dlgTimer); // 二重起動防止
   if (!text) return;
 
   _dlgTyping = true;
-  const nextEl = document.getElementById('dlg-next');
+  const nextEl    = document.getElementById('dlg-next');
+  const choicesEl = document.getElementById('dlg-choices');
   nextEl.classList.remove('visible');
+  choicesEl.innerHTML = '';
+  choicesEl.classList.remove('visible');
   const el = document.getElementById('dlg-text');
   el.textContent = '';
   let i = 0;
@@ -2066,7 +2126,12 @@ function typeText(text) {
     } else {
       clearInterval(_dlgTimer);
       _dlgTyping = false;
-      nextEl.classList.add('visible');
+      const isLast = _dlgLine >= _dlgChar.dialogues.length - 1;
+      if (isLast && _dlgChar.choices) {
+        showDlgChoices(_dlgChar.choices);
+      } else {
+        nextEl.classList.add('visible');
+      }
     }
   }, 38);
 }
@@ -2074,12 +2139,20 @@ function typeText(text) {
 function advanceDialogue() {
   if (!_dlgChar) return;
 
+  // 選択肢表示中は無視
+  if (document.getElementById('dlg-choices').classList.contains('visible')) return;
+
   // タイピング中はスキップ
   if (_dlgTyping) {
     clearInterval(_dlgTimer);
     _dlgTyping = false;
     document.getElementById('dlg-text').textContent = _dlgChar.dialogues[_dlgLine];
-    document.getElementById('dlg-next').classList.add('visible');
+    const isLast = _dlgLine >= _dlgChar.dialogues.length - 1;
+    if (isLast && _dlgChar.choices) {
+      showDlgChoices(_dlgChar.choices);
+    } else {
+      document.getElementById('dlg-next').classList.add('visible');
+    }
     return;
   }
 
@@ -2096,6 +2169,9 @@ function closeDialogue() {
   _dlgTyping = false;
   _dlgChar   = null;
   document.getElementById('dialogue-box').classList.remove('open');
+  const choicesEl = document.getElementById('dlg-choices');
+  choicesEl.innerHTML = '';
+  choicesEl.classList.remove('visible');
 }
 
 // =====================================================
