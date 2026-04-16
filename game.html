@@ -518,6 +518,10 @@ html, body {
 
 /* ===== 2D SIDE SCROLLER (clinic interior) ===== */
 #side-scroller {
+  /* --floor-h: 地面上端〜画面下端の距離。この値を変えれば全要素が連動する */
+  --floor-h: 130px;
+  --dpad-bottom: 14px;
+
   display: none;
   position: absolute;
   inset: 0;
@@ -553,8 +557,9 @@ html, body {
 }
 #ss-ground-strip {
   position: absolute;
-  bottom: 38px; left: 0;
-  width: 8000px; height: 92px;
+  bottom: 36px; left: 0;
+  width: 8000px;
+  height: calc(var(--floor-h) - 38px); /* 92px at default */
   background: #6a9448;
   border-top: 3px solid #c4a870;
 }
@@ -562,7 +567,7 @@ html, body {
 /* NPC objects */
 .ss-npc {
   position: absolute;
-  bottom: 132px;
+  bottom: var(--floor-h);
   text-align: center;
   cursor: pointer;
 }
@@ -608,7 +613,7 @@ html, body {
 /* Player character */
 #ss-player {
   position: absolute;
-  bottom: 132px;
+  bottom: var(--floor-h);
   width: 28px;
   z-index: 15;
   pointer-events: none;
@@ -651,19 +656,21 @@ html, body {
   50%      { transform: rotate(20deg); }
 }
 
-/* D-pad */
+/* D-pad: scroller内absoluteで全サイズ統一管理 */
 #ss-dpad {
-  display: none;
-  position: fixed;
-  bottom: 50px; left: 50%;
+  display: flex;
+  position: absolute;
+  bottom: var(--dpad-bottom);
+  left: 50%;
   transform: translateX(-50%);
   z-index: 25;
   flex-direction: row;
-  gap: 20px;
+  gap: 24px;
   align-items: center;
+  /* タッチ操作でスクロール防止 */
+  touch-action: none;
 }
-#ss-dpad.active { display: flex; }
-#ss-dpad.paused { display: none !important; }
+#ss-dpad.paused { display: none; }
 .ss-dpad-btn {
   width: 56px; height: 56px; border-radius: 50%;
   background: rgba(0, 15, 50, 0.88);
@@ -714,6 +721,31 @@ html, body {
     max-height: 180px;
   }
   .m-title { font-size: 10px; }
+}
+
+/* サイドスクローラー: 小画面調整 */
+@media (max-width: 480px), (max-height: 560px) {
+  #side-scroller {
+    --floor-h: 105px;
+    --dpad-bottom: 10px;
+  }
+  .ss-dpad-btn {
+    width: 52px; height: 52px;
+    font-size: 18px;
+  }
+  #ss-dpad { gap: 36px; }
+  .ss-npc-label { font-size: 4px; }
+  .ss-npc-sublabel { font-size: 7px; }
+}
+
+/* 極小画面（iPhone SE等） */
+@media (max-width: 360px), (max-height: 480px) {
+  #side-scroller {
+    --floor-h: 92px;
+    --dpad-bottom: 8px;
+  }
+  .ss-dpad-btn { width: 46px; height: 46px; font-size: 16px; }
+  #ss-dpad { gap: 28px; }
 }
 </style>
 </head>
@@ -780,14 +812,13 @@ html, body {
         </div>
       </div>
     </div>
+    <!-- D-pad: scroller内に配置してposition:absoluteで統一管理 -->
+    <div id="ss-dpad">
+      <button class="ss-dpad-btn" id="ss-btn-l" aria-label="左へ">◀</button>
+      <button class="ss-dpad-btn" id="ss-btn-r" aria-label="右へ">▶</button>
+    </div>
   </div>
 
-</div>
-
-<!-- D-pad (clinic interior) -->
-<div id="ss-dpad">
-  <button class="ss-dpad-btn" id="ss-btn-l" aria-label="左へ">◀</button>
-  <button class="ss-dpad-btn" id="ss-btn-r" aria-label="右へ">▶</button>
 </div>
 
 <!-- ========== DIALOGUE BOX ========== -->
@@ -1809,8 +1840,11 @@ const SS_NPC_DATA = [
 const ssState = {
   playerX: 40, facingRight: true, moving: false,
   keyL: false, keyR: false, raf: null,
+  _prevCamX: null, _prevWalking: null, _prevFlip: null,
 };
 const _ssH = {}; // event handler refs
+const _ss  = {}; // cached DOM refs (populated in initSideScroller)
+let   _ssVpW = 0; // cached viewport width
 
 function buildSsNpcs() {
   const container = document.getElementById('ss-npcs');
@@ -1841,29 +1875,44 @@ function buildSsFar() {
 
 function initSideScroller() {
   ssState.playerX = 40; ssState.facingRight = true;
-  ssState.moving = false; ssState.keyL = ssState.keyR = false;
+  ssState.moving  = false; ssState.keyL = ssState.keyR = false;
+  ssState._prevCamX = null; ssState._prevWalking = null; ssState._prevFlip = null;
 
   buildSsNpcs();
   buildSsFar();
 
-  // NPC click
+  // DOM refs をキャッシュ（毎フレームのgetElementById呼び出しを排除）
+  _ss.dlgBox  = document.getElementById('dialogue-box');
+  _ss.dpad    = document.getElementById('ss-dpad');
+  _ss.scroller= document.getElementById('side-scroller');
+  _ss.world   = document.getElementById('ss-world');
+  _ss.far     = document.getElementById('ss-far');
+  _ss.player  = document.getElementById('ss-player');
+  _ss.char    = document.getElementById('ss-char');
+  _ss.npcEls  = {};
+  SS_NPC_DATA.forEach(npc => {
+    _ss.npcEls[npc.id] = document.getElementById('ss-npc-' + npc.id);
+    _ss.npcEls[npc.id]._ssActive = false; // 前フレームのactive状態を記録
+  });
+  _ssVpW = _ss.scroller.clientWidth;
+
+  // NPC click（choicesを含めて渡す — ヒントマン対応）
   document.getElementById('ss-npcs').addEventListener('click', e => {
     const el = e.target.closest('.ss-npc');
     if (!el || !el.classList.contains('active')) return;
     const npc = SS_NPC_DATA.find(n => n.id === el.dataset.npc);
-    if (npc) openDialogue({ id: npc.id, name: npc.name, dialogues: npc.dialogues }, null);
+    if (npc) openDialogue({ id: npc.id, name: npc.name, dialogues: npc.dialogues, choices: npc.choices || null }, null);
   });
 
-  document.getElementById('side-scroller').classList.add('active');
-  document.getElementById('ss-dpad').classList.add('active');
+  _ss.scroller.classList.add('active');
+  // D-padはscroller内にあるため別途.activeは不要
   setupSsInput();
   ssState.raf = requestAnimationFrame(ssLoop);
 }
 
 function destroySideScroller() {
   if (ssState.raf) { cancelAnimationFrame(ssState.raf); ssState.raf = null; }
-  document.getElementById('side-scroller').classList.remove('active');
-  document.getElementById('ss-dpad').classList.remove('active');
+  if (_ss.scroller) _ss.scroller.classList.remove('active');
   document.getElementById('ss-npcs').innerHTML = '';
   document.getElementById('ss-far').innerHTML  = '';
   teardownSsInput();
@@ -1901,14 +1950,17 @@ function setupSsInput() {
   btnR.addEventListener('mouseleave',  _ssH.rR);
   btnR.addEventListener('touchend',    _ssH.rR);
   btnR.addEventListener('touchcancel', _ssH.rR);
-  _ssH.blur = () => { ssState.keyL = ssState.keyR = false; btnL.classList.remove('pressed'); btnR.classList.remove('pressed'); };
-  window.addEventListener('blur', _ssH.blur);
+  _ssH.blur   = () => { ssState.keyL = ssState.keyR = false; btnL.classList.remove('pressed'); btnR.classList.remove('pressed'); };
+  _ssH.resize = () => { if (_ss.scroller) _ssVpW = _ss.scroller.clientWidth; };
+  window.addEventListener('blur',   _ssH.blur);
+  window.addEventListener('resize', _ssH.resize);
 }
 
 function teardownSsInput() {
   document.removeEventListener('keydown', _ssH.kd);
   document.removeEventListener('keyup',   _ssH.ku);
-  window.removeEventListener('blur', _ssH.blur);
+  window.removeEventListener('blur',   _ssH.blur);
+  window.removeEventListener('resize', _ssH.resize);
   const btnL = document.getElementById('ss-btn-l');
   const btnR = document.getElementById('ss-btn-r');
   if (_ssH.pL) {
@@ -1927,16 +1979,15 @@ function teardownSsInput() {
   }
 }
 
-// ── ゲームループ ──
+// ── ゲームループ（最適化版: DOMキャッシュ＋差分更新） ──
 function ssLoop() {
-  const dlgOpen = document.getElementById('dialogue-box').classList.contains('open');
-  const dpad    = document.getElementById('ss-dpad');
+  const dlgOpen = _ss.dlgBox.classList.contains('open');
 
   if (dlgOpen) {
-    dpad.classList.add('paused');
+    _ss.dpad.classList.add('paused');
     ssState.moving = false;
   } else {
-    dpad.classList.remove('paused');
+    _ss.dpad.classList.remove('paused');
     if (ssState.keyL && ssState.playerX > 20) {
       ssState.playerX -= SS_SPEED;
       ssState.facingRight = false; ssState.moving = true;
@@ -1948,25 +1999,39 @@ function ssLoop() {
     }
   }
 
-  // Proximity check
+  // Proximity check — activeが変わったときのみclassList更新
   SS_NPC_DATA.forEach(npc => {
-    const el = document.getElementById('ss-npc-' + npc.id);
-    if (el) el.classList.toggle('active', Math.abs(ssState.playerX - npc.worldX) < SS_PROXIMITY);
+    const el   = _ss.npcEls[npc.id];
+    if (!el) return;
+    const near = Math.abs(ssState.playerX - npc.worldX) < SS_PROXIMITY;
+    if (near !== el._ssActive) {
+      el._ssActive = near;
+      el.classList.toggle('active', near);
+    }
   });
 
-  // Render
-  const scroller = document.getElementById('side-scroller');
-  const vpW      = scroller.clientWidth;
-  const camX     = Math.max(0, Math.min(ssState.playerX - vpW * 0.35, SS_WORLD_W - vpW));
+  // Camera — camXが変わったときのみtransform更新
+  const camX = Math.max(0, Math.min(ssState.playerX - _ssVpW * 0.35, SS_WORLD_W - _ssVpW));
+  if (camX !== ssState._prevCamX) {
+    _ss.world.style.transform = `translateX(${-camX}px)`;
+    _ss.far.style.transform   = `translateX(${-camX * 0.38}px)`;
+    ssState._prevCamX = camX;
+  }
 
-  document.getElementById('ss-world').style.transform = `translateX(${-camX}px)`;
-  document.getElementById('ss-far').style.transform   = `translateX(${-camX * 0.38}px)`;
+  // Player position — 変化があるときのみ更新
+  const newLeft = (ssState.playerX - camX - 14) + 'px';
+  if (_ss.player.style.left !== newLeft) _ss.player.style.left = newLeft;
 
-  const playerEl = document.getElementById('ss-player');
-  const charEl   = document.getElementById('ss-char');
-  playerEl.style.left = (ssState.playerX - camX - 14) + 'px';
-  charEl.classList.toggle('walking', ssState.moving);
-  charEl.classList.toggle('flip',   !ssState.facingRight);
+  // Walking / flip — 状態変化のときのみclassList操作
+  if (ssState.moving !== ssState._prevWalking) {
+    _ss.char.classList.toggle('walking', ssState.moving);
+    ssState._prevWalking = ssState.moving;
+  }
+  const flip = !ssState.facingRight;
+  if (flip !== ssState._prevFlip) {
+    _ss.char.classList.toggle('flip', flip);
+    ssState._prevFlip = flip;
+  }
 
   ssState.raf = requestAnimationFrame(ssLoop);
 }
