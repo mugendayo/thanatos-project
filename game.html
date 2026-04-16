@@ -599,29 +599,24 @@ html, body {
   0%,100% { transform: translateX(-50%) translateY(0); }
   50%      { transform: translateX(-50%) translateY(-5px); }
 }
-/* 看板デザイン */
+/* 看板デザイン（地面刺さり型：ポールが地面から立ち上がる） */
 .ss-npc-sign {
   position: absolute;
-  top: -52px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #8B5E2A;
-  border: 3px solid #5C3A10;
-  border-radius: 4px;
-  padding: 5px 10px;
-  white-space: nowrap;
-  box-shadow: 2px 3px 0 #3a2000, inset 0 1px 0 rgba(255,220,160,0.25);
+  bottom: 0;          /* 地面レベルに固定 */
+  left: 6px;          /* NPC左寄り */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   z-index: 5;
+  pointer-events: none;
 }
 .ss-npc-sign::after {
   content: '';
-  position: absolute;
-  bottom: -9px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 3px;
-  height: 9px;
+  width: 4px;
+  height: 44px;       /* ポール（地面→看板板まで） */
   background: #5C3A10;
+  display: block;
+  flex-shrink: 0;
 }
 .ss-npc-sign-text {
   font-family: 'Noto Serif JP', serif;
@@ -631,24 +626,12 @@ html, body {
   text-shadow: 1px 1px 0 #3a2000;
   letter-spacing: 0.05em;
   display: block;
-}
-
-/* ヒントマン専用：ピクセルアート風看板 */
-#ss-npc-hint_man .ss-npc-sign {
-  background: #FFE000;
-  border: 3px solid #000;
-  box-shadow: 3px 3px 0 #000, inset 0 0 0 0;
-}
-#ss-npc-hint_man .ss-npc-sign::after {
-  background: #333;
-  width: 4px;
-}
-#ss-npc-hint_man .ss-npc-sign-text {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  color: #000;
-  text-shadow: none;
-  letter-spacing: 0.12em;
+  background: #8B5E2A;
+  border: 3px solid #5C3A10;
+  border-radius: 4px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  box-shadow: 2px 3px 0 #3a2000, inset 0 1px 0 rgba(255,220,160,0.25);
 }
 
 /* NPC part: shared head / body */
@@ -915,8 +898,8 @@ html, body {
     font-size: 30px;
   }
 
-  .ss-npc-sign-text { font-size: 11px; }
-  .ss-npc-sign { padding: 4px 8px; top: -46px; }
+  .ss-npc-sign-text { font-size: 11px; padding: 3px 8px; }
+  .ss-npc-sign::after { height: 36px; }
 }
 
 /* 極小画面（iPhone SE等）*/
@@ -2102,7 +2085,7 @@ const SS_NPC_DATA = [
       return `<div style="text-align:center">
         <!-- ラーメン二郎 黄色看板 -->
         <div style="background:#FFE000;border:3px solid #cc8800;padding:2px 8px;margin:0 auto 4px;display:inline-block;border-radius:2px;box-shadow:2px 2px 0 #aa6600">
-          <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:900;color:#cc0000;letter-spacing:0.05em;white-space:nowrap">ラーメン二郎</div>
+          <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:900;color:#000;letter-spacing:0.05em;white-space:nowrap">ラーメン二郎</div>
         </div>
         <!-- 調理エリア -->
         <div style="display:flex;gap:6px;justify-content:center;align-items:flex-end">
@@ -2157,8 +2140,9 @@ const SS_NPC_DATA = [
     }
   },
   {
-    id: 'hint_man',    worldX: 1490, width: 60,
+    id: 'hint_man',    worldX: 1490, width: 100,
     label: 'HINT', sublabel: 'HINT MAN', name: 'ヒントマン',
+    noGenericSign: true,
     dialogues: [
       '…。',
       'ひとつだけ、教えてあげよう。',
@@ -2170,39 +2154,51 @@ const SS_NPC_DATA = [
       { label: 'NO',  action: 'closeDialogue' },
     ],
     visual() {
-      // ピクセルアート風キャラクター（帽子・ひげ・軍服）
-      return `<div style="text-align:center;image-rendering:pixelated">
-        <!-- 帽子 -->
-        <div style="width:22px;height:6px;background:#4a5a2a;border:2px solid #2a3a10;margin:0 auto;position:relative">
-          <div style="position:absolute;top:-4px;left:2px;width:18px;height:4px;background:#3a4a1a;border:2px solid #2a3a10"></div>
-          <div style="position:absolute;bottom:-1px;left:-2px;width:26px;height:2px;background:#2a3a10"></div>
+      // 看板を手で持つピクセルアート風キャラクター
+      return `<div style="display:flex;align-items:flex-end;gap:3px;justify-content:center;image-rendering:pixelated">
+        <!-- 看板＋ポール（左手で持ち上げ） -->
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <!-- HINT看板（ピクセルアート風：黄地×黒） -->
+          <div style="background:#FFE000;border:3px solid #000;padding:4px 8px;box-shadow:3px 3px 0 #000">
+            <span style="font-family:'Press Start 2P',monospace;font-size:9px;color:#000;display:block;letter-spacing:0.05em">HINT</span>
+          </div>
+          <!-- ポール -->
+          <div style="width:4px;height:30px;background:#8B5E2A;border-left:1px solid #5C3A10"></div>
         </div>
-        <!-- 顔 -->
-        <div style="width:20px;height:16px;background:#d4a870;border:2px solid #8B5E2A;margin:0 auto;position:relative">
-          <!-- 目 -->
-          <div style="position:absolute;top:3px;left:3px;width:3px;height:3px;background:#2a1a0a"></div>
-          <div style="position:absolute;top:3px;right:3px;width:3px;height:3px;background:#2a1a0a"></div>
-          <!-- ひげ（太め） -->
-          <div style="position:absolute;bottom:0;left:0;right:0;height:8px;background:#3a2a1a;border-radius:0 0 1px 1px"></div>
-          <div style="position:absolute;bottom:2px;left:2px;right:2px;height:4px;background:#5a3a1a"></div>
-        </div>
-        <!-- 首 -->
-        <div style="width:10px;height:3px;background:#c49060;margin:0 auto"></div>
-        <!-- 胴体（軍服） -->
-        <div style="width:22px;height:20px;background:#4a6a3a;border:2px solid #2a4a1a;margin:0 auto;position:relative">
-          <!-- ポケット -->
-          <div style="position:absolute;top:4px;left:3px;width:6px;height:5px;border:1px solid #2a4a1a;background:#3a5a2a"></div>
-          <div style="position:absolute;top:4px;right:3px;width:6px;height:5px;border:1px solid #2a4a1a;background:#3a5a2a"></div>
-        </div>
-        <!-- 脚 -->
-        <div style="display:flex;justify-content:center;gap:2px">
-          <div style="width:8px;height:12px;background:#3a3a2a;border:2px solid #2a2a1a"></div>
-          <div style="width:8px;height:12px;background:#3a3a2a;border:2px solid #2a2a1a"></div>
-        </div>
-        <!-- 靴 -->
-        <div style="display:flex;justify-content:center;gap:2px">
-          <div style="width:10px;height:4px;background:#1a1a0a;border-radius:0 0 2px 2px"></div>
-          <div style="width:10px;height:4px;background:#1a1a0a;border-radius:0 0 2px 2px"></div>
+        <!-- キャラクター本体 -->
+        <div style="text-align:center">
+          <!-- 帽子 -->
+          <div style="width:22px;height:5px;background:#4a5a2a;border:2px solid #2a3a10;margin:0 auto;position:relative">
+            <div style="position:absolute;top:-5px;left:2px;width:18px;height:5px;background:#3a4a1a;border:2px solid #2a3a10"></div>
+            <div style="position:absolute;bottom:-1px;left:-3px;width:28px;height:2px;background:#2a3a10"></div>
+          </div>
+          <!-- 顔（ひげ付き） -->
+          <div style="width:20px;height:16px;background:#d4a870;border:2px solid #8B5E2A;margin:0 auto;position:relative">
+            <div style="position:absolute;top:3px;left:3px;width:3px;height:3px;background:#1a0a00"></div>
+            <div style="position:absolute;top:3px;right:3px;width:3px;height:3px;background:#1a0a00"></div>
+            <!-- ひげ -->
+            <div style="position:absolute;bottom:0;left:-1px;right:-1px;height:9px;background:#3a2010;border-radius:0 0 4px 4px"></div>
+            <div style="position:absolute;bottom:2px;left:1px;right:1px;height:5px;background:#5a3a18"></div>
+          </div>
+          <!-- 左腕（挙上：看板ポールを持つ） -->
+          <div style="position:relative;height:0">
+            <div style="position:absolute;top:-28px;left:-12px;width:5px;height:22px;background:#4a6a3a;border:1px solid #2a4a1a;border-radius:2px;transform:rotate(-20deg);transform-origin:bottom center"></div>
+          </div>
+          <!-- 胴体（軍服） -->
+          <div style="width:22px;height:20px;background:#4a6a3a;border:2px solid #2a4a1a;margin:0 auto;position:relative">
+            <div style="position:absolute;top:4px;left:2px;width:5px;height:5px;border:1px solid #2a4a1a;background:#3a5a2a"></div>
+            <div style="position:absolute;top:4px;right:2px;width:5px;height:5px;border:1px solid #2a4a1a;background:#3a5a2a"></div>
+          </div>
+          <!-- 脚 -->
+          <div style="display:flex;justify-content:center;gap:2px">
+            <div style="width:8px;height:11px;background:#3a3a2a;border:2px solid #2a2a1a"></div>
+            <div style="width:8px;height:11px;background:#3a3a2a;border:2px solid #2a2a1a"></div>
+          </div>
+          <!-- 靴 -->
+          <div style="display:flex;justify-content:center;gap:2px">
+            <div style="width:10px;height:4px;background:#111;border-radius:0 0 2px 2px"></div>
+            <div style="width:10px;height:4px;background:#111;border-radius:0 0 2px 2px"></div>
+          </div>
         </div>
       </div>`;
     }
@@ -2225,7 +2221,7 @@ function buildSsNpcs() {
     <div class="ss-npc" id="ss-npc-${npc.id}"
          style="left:${npc.worldX - (npc.width||80)/2}px;width:${npc.width||80}px"
          data-npc="${npc.id}">
-      <div class="ss-npc-sign"><span class="ss-npc-sign-text">${npc.label}</span></div>
+      ${npc.noGenericSign ? '' : `<div class="ss-npc-sign"><span class="ss-npc-sign-text">${npc.label}</span></div>`}
       <div class="ss-npc-exclaim">!</div>
       ${npc.visual()}
     </div>`).join('');
