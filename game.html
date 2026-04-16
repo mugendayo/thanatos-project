@@ -733,26 +733,63 @@ html, body {
   .m-title { font-size: 10px; }
 }
 
-/* サイドスクローラー: スマホ調整
- * --floor-h は vh ベースのため実際の調整は不要だが、
- * D-padサイズやギャップをスマホで最適化する */
-@media (max-width: 480px) {
-  .ss-dpad-btn { width: 52px; height: 52px; font-size: 18px; }
-  #ss-dpad { gap: 40px; }
-  .ss-npc-label { font-size: 4px; }
+/* ===================================================
+   スマホ共通: ダイアログ・D-pad・スクローラー
+   =================================================== */
+@media (max-width: 600px) {
+  /*
+   * ダイアログウィンドウ:
+   * - 地面ライン(--floor-h)より少し上に固定
+   * - テキストエリアを2行固定高さ・overflowで切り捨て
+   */
+  #dialogue-box {
+    bottom: calc(42vh + env(safe-area-inset-bottom, 0px));
+    width: 92vw;
+  }
+  .dlg-inner {
+    min-height: unset;
+    padding: 12px 38px 12px 16px;
+  }
+  .dlg-text {
+    font-size: 13px;
+    line-height: 1.75;
+    /* 2行固定: それ以上はoverflow hidden で切る */
+    height: calc(13px * 1.75 * 2);
+    overflow: hidden;
+    min-height: unset;
+  }
+
+  /*
+   * D-pad:
+   * - 地面の中ほど(22vh)に配置 → 親指で押しやすい高さ
+   * - ボタンを大きく(64px)・間隔を広げる(80px)
+   */
+  #ss-dpad {
+    bottom: calc(22vh + env(safe-area-inset-bottom, 0px));
+    gap: 80px;
+  }
+  .ss-dpad-btn {
+    width: 64px; height: 64px;
+    font-size: 22px;
+  }
+
+  /* NPC ラベルを少し小さく */
+  .ss-npc-label   { font-size: 4px; }
   .ss-npc-sublabel { font-size: 7px; }
 }
 
-/* 極小画面（iPhone SE等）: 地面を少し広げる */
+/* 極小画面（iPhone SE等）*/
 @media (max-width: 360px) {
-  .ss-dpad-btn { width: 46px; height: 46px; font-size: 16px; }
-  #ss-dpad { gap: 28px; }
+  .ss-dpad-btn { width: 56px; height: 56px; font-size: 20px; }
+  #ss-dpad { gap: 60px; }
 }
 
-/* 横向き: 地面を狭め空を広くする */
+/* 横向き */
 @media (orientation: landscape) and (max-height: 480px) {
   #side-scroller { --floor-h: 48vh; }
-  .ss-dpad-btn { width: 44px; height: 44px; font-size: 16px; }
+  #ss-dpad { bottom: calc(24vh + env(safe-area-inset-bottom, 0px)); gap: 70px; }
+  .ss-dpad-btn { width: 52px; height: 52px; font-size: 18px; }
+  #dialogue-box  { bottom: calc(50vh + env(safe-area-inset-bottom, 0px)); }
 }
 </style>
 </head>
@@ -1881,7 +1918,10 @@ function buildSsFar() {
 }
 
 function initSideScroller() {
-  ssState.playerX = 40; ssState.facingRight = true;
+  // playerX = 250: 世界座標の中央左あたりからスタート。
+  // カメラオフセット(camX ≈ 124)が生まれ、左にも背景が見えるため
+  // 「背景が動く」感より「自分が動く」感覚になる。
+  ssState.playerX = 250; ssState.facingRight = true;
   ssState.moving  = false; ssState.keyL = ssState.keyR = false;
   ssState._prevCamX = null; ssState._prevWalking = null; ssState._prevFlip = null;
 
