@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -35,7 +35,9 @@ html, body {
 
 #world {
   position: relative;
-  width: 100vw; height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Android/iOS: ブラウザUIを除いた実際の表示領域 */
   overflow: hidden;
 }
 
@@ -518,21 +520,25 @@ html, body {
 
 /* ===== 2D SIDE SCROLLER (clinic interior) ===== */
 #side-scroller {
-  /* --floor-h: 地面上端〜画面下端の距離。この値を変えれば全要素が連動する */
-  --floor-h: 130px;
-  --dpad-bottom: 14px;
+  /*
+   * --floor-h: キャラクター・地面が立つ高さ（画面下端からの距離）
+   * viewport相対値(vh)を使うことで全スマホサイズで一定の比率に配置される。
+   * この変数を変えるだけで NPC・プレイヤー・地面ストリップすべてが連動する。
+   */
+  --floor-h: 40vh;
 
   display: none;
   position: absolute;
   inset: 0;
   overflow: hidden;
   z-index: 10;
+  /* グラデーション: 空(上60%) + 川帯 + 地面(下38%)。--floor-h: 40vh に対応 */
   background: linear-gradient(
     to bottom,
-    #7ec8e8 0%, #b0dcf4 30%,
-    #5baed4 30%, #3a88bb 36%,
-    #2a5a8a 36%, #3a6a2a 40%,
-    #5a8040 40%, #4a7030 100%
+    #7ec8e8 0%, #b0dcf4 52%,
+    #5baed4 52%, #3a88bb 58%,
+    #2a5a8a 58%, #3a6a2a 62%,
+    #5a8040 62%, #4a7030 100%
   );
 }
 #side-scroller.active { display: block; }
@@ -557,11 +563,12 @@ html, body {
 }
 #ss-ground-strip {
   position: absolute;
-  bottom: 36px; left: 0;
+  bottom: 0; left: 0;
   width: 8000px;
-  height: calc(var(--floor-h) - 38px); /* 92px at default */
-  background: #6a9448;
-  border-top: 3px solid #c4a870;
+  /* 地面ストリップは --floor-h の高さぶん画面下端を覆う */
+  height: var(--floor-h);
+  background: linear-gradient(to bottom, #6a9448 0%, #5a8040 100%);
+  border-top: 4px solid #c4a870;
 }
 
 /* NPC objects */
@@ -660,14 +667,17 @@ html, body {
 #ss-dpad {
   display: flex;
   position: absolute;
-  bottom: var(--dpad-bottom);
+  /*
+   * env(safe-area-inset-bottom): iOS/AndroidのナビゲーションバーやホームインジケーターUリアの高さを自動補正。
+   * 未対応ブラウザでは 0px にフォールバック。
+   */
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
   flex-direction: row;
   gap: 24px;
   align-items: center;
-  /* タッチ操作でスクロール防止 */
   touch-action: none;
 }
 #ss-dpad.paused { display: none; }
@@ -723,29 +733,26 @@ html, body {
   .m-title { font-size: 10px; }
 }
 
-/* サイドスクローラー: 小画面調整 */
-@media (max-width: 480px), (max-height: 560px) {
-  #side-scroller {
-    --floor-h: 105px;
-    --dpad-bottom: 10px;
-  }
-  .ss-dpad-btn {
-    width: 52px; height: 52px;
-    font-size: 18px;
-  }
-  #ss-dpad { gap: 36px; }
+/* サイドスクローラー: スマホ調整
+ * --floor-h は vh ベースのため実際の調整は不要だが、
+ * D-padサイズやギャップをスマホで最適化する */
+@media (max-width: 480px) {
+  .ss-dpad-btn { width: 52px; height: 52px; font-size: 18px; }
+  #ss-dpad { gap: 40px; }
   .ss-npc-label { font-size: 4px; }
   .ss-npc-sublabel { font-size: 7px; }
 }
 
-/* 極小画面（iPhone SE等） */
-@media (max-width: 360px), (max-height: 480px) {
-  #side-scroller {
-    --floor-h: 92px;
-    --dpad-bottom: 8px;
-  }
+/* 極小画面（iPhone SE等）: 地面を少し広げる */
+@media (max-width: 360px) {
   .ss-dpad-btn { width: 46px; height: 46px; font-size: 16px; }
   #ss-dpad { gap: 28px; }
+}
+
+/* 横向き: 地面を狭め空を広くする */
+@media (orientation: landscape) and (max-height: 480px) {
+  #side-scroller { --floor-h: 48vh; }
+  .ss-dpad-btn { width: 44px; height: 44px; font-size: 16px; }
 }
 </style>
 </head>
