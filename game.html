@@ -595,18 +595,38 @@ html, body {
   0%,100% { transform: translateX(-50%) translateY(0); }
   50%      { transform: translateX(-50%) translateY(-5px); }
 }
-.ss-npc-label {
-  display: block;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 5px; color: #ffdd00;
-  text-shadow: 1px 1px 0 #000;
-  white-space: nowrap; margin-top: 5px;
-}
-.ss-npc-sublabel {
-  display: block;
-  font-family: 'Noto Serif JP', serif;
-  font-size: 8px; color: rgba(255,255,255,0.72);
+/* 看板デザイン */
+.ss-npc-sign {
+  position: absolute;
+  top: -52px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #8B5E2A;
+  border: 3px solid #5C3A10;
+  border-radius: 4px;
+  padding: 5px 10px;
   white-space: nowrap;
+  box-shadow: 2px 3px 0 #3a2000, inset 0 1px 0 rgba(255,220,160,0.25);
+  z-index: 5;
+}
+.ss-npc-sign::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 9px;
+  background: #5C3A10;
+}
+.ss-npc-sign-text {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff5d0;
+  text-shadow: 1px 1px 0 #3a2000;
+  letter-spacing: 0.05em;
+  display: block;
 }
 
 /* NPC part: shared head / body */
@@ -667,8 +687,8 @@ html, body {
 #ss-dpad {
   display: flex;
   position: absolute;
-  /* 3vh: PC/タブレットで地面エリア内の見やすい位置。モバイルはmedia queryで上書き */
-  bottom: calc(3vh + env(safe-area-inset-bottom, 0px));
+  /* 10vh: PC/タブレットで地面エリア内の見やすい位置。モバイルはmedia queryで上書き */
+  bottom: calc(10vh + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
@@ -679,11 +699,11 @@ html, body {
 }
 #ss-dpad.paused { display: none; }
 .ss-dpad-btn {
-  width: 56px; height: 56px; border-radius: 50%;
+  width: 84px; height: 84px; border-radius: 50%;
   background: rgba(0, 15, 50, 0.88);
   border: 2px solid var(--rpg-border);
   color: var(--rpg-yellow);
-  font-size: 20px;
+  font-size: 30px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none; -webkit-user-select: none;
   box-shadow: 0 0 12px rgba(136,136,255,0.3);
@@ -693,6 +713,86 @@ html, body {
 .ss-dpad-btn.pressed {
   background: rgba(0, 80, 140, 0.92);
   transform: scale(0.9);
+}
+
+/* ===== VIDEO PICKER OVERLAY ===== */
+#video-picker {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,20,0.88);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px;
+}
+#video-picker.open { display: flex; }
+#video-picker-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--rpg-yellow);
+  text-align: center;
+  letter-spacing: .08em;
+  line-height: 1.7;
+}
+#video-picker-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+.vp-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  width: 200px;
+}
+.vp-thumb {
+  width: 200px;
+  height: 112px;
+  object-fit: cover;
+  border: 2px solid var(--rpg-border);
+  border-radius: 4px;
+  background: #111;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.vp-thumb.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+}
+.vp-item:hover .vp-thumb { border-color: var(--rpg-yellow); transform: scale(1.03); }
+.vp-label {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.88);
+  text-align: center;
+  line-height: 1.5;
+}
+#video-picker-close {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+  background: none;
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 8px 18px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-top: 8px;
+}
+#video-picker-close:hover { color: #fff; border-color: #fff; }
+@media (max-width: 600px) {
+  .vp-item { width: 140px; }
+  .vp-thumb { width: 140px; height: 79px; }
+  .vp-label { font-size: 10px; }
+  #video-picker-title { font-size: 8px; }
 }
 
 /* ===== DIALOGUE CHOICES ===== */
@@ -784,17 +884,17 @@ html, body {
     gap: 80px;
   }
   .ss-dpad-btn {
-    width: 64px; height: 64px;
-    font-size: 22px;
+    width: 84px; height: 84px;
+    font-size: 30px;
   }
 
-  .ss-npc-label   { font-size: 4px; }
-  .ss-npc-sublabel { font-size: 7px; }
+  .ss-npc-sign-text { font-size: 11px; }
+  .ss-npc-sign { padding: 4px 8px; top: -46px; }
 }
 
 /* 極小画面（iPhone SE等）*/
 @media (max-width: 360px) {
-  .ss-dpad-btn { width: 56px; height: 56px; font-size: 20px; }
+  .ss-dpad-btn { width: 70px; height: 70px; font-size: 24px; }
   #ss-dpad { gap: 60px; }
 }
 
@@ -888,6 +988,26 @@ html, body {
     <div class="dlg-next" id="dlg-next">▼ CLICK</div>
     <button class="dlg-close" id="dlg-close">✕</button>
   </div>
+</div>
+
+<!-- ========== VIDEO PICKER ========== -->
+<div id="video-picker">
+  <div id="video-picker-title">どの映像をご覧になりますか？</div>
+  <div id="video-picker-list">
+    <div class="vp-item" data-url="">
+      <div class="vp-thumb placeholder">COMING SOON</div>
+      <div class="vp-label">① 整いはマシマシ 編</div>
+    </div>
+    <div class="vp-item" data-url="https://youtu.be/yjYuciqh8HE?si=mI5i7yRzIlPts-xS">
+      <img class="vp-thumb" src="https://img.youtube.com/vi/yjYuciqh8HE/maxresdefault.jpg" alt="ハイポテンシャルなあなたに 編">
+      <div class="vp-label">② ハイポテンシャルなあなたに 編</div>
+    </div>
+    <div class="vp-item" data-url="">
+      <div class="vp-thumb placeholder">COMING SOON</div>
+      <div class="vp-label">③ 整いの向こう側 編</div>
+    </div>
+  </div>
+  <button id="video-picker-close">とじる</button>
 </div>
 
 <!-- ========== MODAL ========== -->
@@ -1910,10 +2030,9 @@ function buildSsNpcs() {
     <div class="ss-npc" id="ss-npc-${npc.id}"
          style="left:${npc.worldX - (npc.width||80)/2}px;width:${npc.width||80}px"
          data-npc="${npc.id}">
+      <div class="ss-npc-sign"><span class="ss-npc-sign-text">${npc.label}</span></div>
       <div class="ss-npc-exclaim">!</div>
       ${npc.visual()}
-      <span class="ss-npc-label">${npc.label}</span>
-      <span class="ss-npc-sublabel">${npc.sublabel}</span>
     </div>`).join('');
 }
 
@@ -2109,7 +2228,7 @@ function enterClinicInterior() {
   svg.classList.add('stage-fade');
   setTimeout(() => {
     clinicStage = 'interior';
-    document.getElementById('btn-back').textContent = '← ENTRANCE';
+    document.getElementById('btn-back').textContent = '←戻る';
     svg.classList.remove('stage-fade');
     initSideScroller();
   }, 250);
@@ -2256,7 +2375,9 @@ function showDlgChoices(choices) {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       if (btn.dataset.action === 'openYouTube') {
-        window.open('https://youtu.be/yjYuciqh8HE?si=mI5i7yRzIlPts-xS', '_blank');
+        closeDialogue();
+        openVideoPicker();
+        return;
       }
       closeDialogue();
     });
@@ -2331,6 +2452,36 @@ function closeDialogue() {
   choicesEl.innerHTML = '';
   choicesEl.classList.remove('visible');
 }
+
+// =====================================================
+//  VIDEO PICKER
+// =====================================================
+function openVideoPicker() {
+  const picker = document.getElementById('video-picker');
+  picker.classList.add('open');
+}
+
+function closeVideoPicker() {
+  document.getElementById('video-picker').classList.remove('open');
+}
+
+(function initVideoPicker() {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('video-picker-close').addEventListener('click', closeVideoPicker);
+    document.getElementById('video-picker').addEventListener('click', e => {
+      if (e.target === document.getElementById('video-picker')) closeVideoPicker();
+    });
+    document.querySelectorAll('.vp-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const url = item.dataset.url;
+        if (url) {
+          window.open(url, '_blank');
+          closeVideoPicker();
+        }
+      });
+    });
+  });
+})();
 
 // =====================================================
 //  INIT
