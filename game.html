@@ -667,11 +667,8 @@ html, body {
 #ss-dpad {
   display: flex;
   position: absolute;
-  /*
-   * env(safe-area-inset-bottom): iOS/AndroidのナビゲーションバーやホームインジケーターUリアの高さを自動補正。
-   * 未対応ブラウザでは 0px にフォールバック。
-   */
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  /* 3vh: PC/タブレットで地面エリア内の見やすい位置。モバイルはmedia queryで上書き */
+  bottom: calc(3vh + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
@@ -738,12 +735,27 @@ html, body {
    =================================================== */
 @media (max-width: 600px) {
   /*
-   * ダイアログウィンドウ:
-   * - 地面ライン(--floor-h)より少し上に固定
-   * - テキストエリアを2行固定高さ・overflowで切り捨て
+   * モバイル地面を45vhに拡大（草エリアを広げてダイアログ・D-padを配置する余地を確保）
+   * グラデーションも合わせて調整（空が上55%、草が下45%）
+   */
+  #side-scroller {
+    --floor-h: 45vh;
+    background: linear-gradient(
+      to bottom,
+      #7ec8e8 0%, #b0dcf4 46%,
+      #5baed4 46%, #3a88bb 53%,
+      #2a5a8a 53%, #3a6a2a 57%,
+      #5a8040 57%, #4a7030 100%
+    );
+  }
+
+  /*
+   * ダイアログ: 草エリア内（28vh）に配置。
+   * D-pad(12vh〜21vh)と character line(45vh)の間に収まる。
+   * テキストはJS側でページ分割するので CSS は高さ制限なし。
    */
   #dialogue-box {
-    bottom: calc(42vh + env(safe-area-inset-bottom, 0px));
+    bottom: 28vh;
     width: 92vw;
   }
   .dlg-inner {
@@ -753,19 +765,15 @@ html, body {
   .dlg-text {
     font-size: 13px;
     line-height: 1.75;
-    /* 2行固定: それ以上はoverflow hidden で切る */
-    height: calc(13px * 1.75 * 2);
-    overflow: hidden;
     min-height: unset;
   }
 
   /*
-   * D-pad:
-   * - 地面の中ほど(22vh)に配置 → 親指で押しやすい高さ
-   * - ボタンを大きく(64px)・間隔を広げる(80px)
+   * D-pad: 12vh（草エリア下部・親指の届く高さ）
+   * ボタン64px・間隔80px
    */
   #ss-dpad {
-    bottom: calc(22vh + env(safe-area-inset-bottom, 0px));
+    bottom: calc(12vh + env(safe-area-inset-bottom, 0px));
     gap: 80px;
   }
   .ss-dpad-btn {
@@ -773,7 +781,6 @@ html, body {
     font-size: 22px;
   }
 
-  /* NPC ラベルを少し小さく */
   .ss-npc-label   { font-size: 4px; }
   .ss-npc-sublabel { font-size: 7px; }
 }
@@ -787,9 +794,9 @@ html, body {
 /* 横向き */
 @media (orientation: landscape) and (max-height: 480px) {
   #side-scroller { --floor-h: 48vh; }
-  #ss-dpad { bottom: calc(24vh + env(safe-area-inset-bottom, 0px)); gap: 70px; }
+  #ss-dpad { bottom: calc(14vh + env(safe-area-inset-bottom, 0px)); gap: 70px; }
   .ss-dpad-btn { width: 52px; height: 52px; font-size: 18px; }
-  #dialogue-box  { bottom: calc(50vh + env(safe-area-inset-bottom, 0px)); }
+  #dialogue-box  { bottom: 32vh; }
 }
 </style>
 </head>
@@ -1939,9 +1946,13 @@ function initSideScroller() {
   _ss.npcEls  = {};
   SS_NPC_DATA.forEach(npc => {
     _ss.npcEls[npc.id] = document.getElementById('ss-npc-' + npc.id);
-    _ss.npcEls[npc.id]._ssActive = false; // 前フレームのactive状態を記録
+    _ss.npcEls[npc.id]._ssActive = false;
   });
-  _ssVpW = _ss.scroller.clientWidth;
+
+  // .active を先に付けてから clientWidth を読む。
+  // display:none のままだと clientWidth=0 になりカメラ計算が崩れるため。
+  _ss.scroller.classList.add('active');
+  _ssVpW = _ss.scroller.clientWidth || window.innerWidth;
 
   // NPC click（choicesを含めて渡す — ヒントマン対応）
   document.getElementById('ss-npcs').addEventListener('click', e => {
@@ -1951,8 +1962,6 @@ function initSideScroller() {
     if (npc) openDialogue({ id: npc.id, name: npc.name, dialogues: npc.dialogues, choices: npc.choices || null }, null);
   });
 
-  _ss.scroller.classList.add('active');
-  // D-padはscroller内にあるため別途.activeは不要
   setupSsInput();
   ssState.raf = requestAnimationFrame(ssLoop);
 }
@@ -2182,12 +2191,42 @@ let _dlgLine      = 0;
 let _dlgTyping    = false;
 let _dlgTimer     = null;
 
-function openDialogue(char, spriteEl) {
-  // すでに同じキャラが話し中なら無視
-  if (_dlgChar === char && document.getElementById('dialogue-box').classList.contains('open')) return;
+/**
+ * モバイル用テキストページ分割
+ * 日本語の句読点を優先してmaxChars文字ごとにページを作る。
+ * CLICKで続きが出る仕組みと組み合わせて使用。
+ */
+function paginateText(text, maxChars) {
+  if (text.length <= maxChars) return [text];
+  const pages = [];
+  let rem = text;
+  while (rem.length > maxChars) {
+    let bp = maxChars;
+    // 句読点があれば自然な区切りで分割
+    for (let i = maxChars; i > Math.floor(maxChars * 0.5); i--) {
+      if ('。、！？…」』\n'.includes(rem[i - 1])) { bp = i; break; }
+    }
+    pages.push(rem.slice(0, bp));
+    rem = rem.slice(bp).replace(/^\n/, '');
+  }
+  if (rem) pages.push(rem);
+  return pages;
+}
 
-  clearInterval(_dlgTimer); // 残存タイマーを必ずクリア
-  _dlgChar = char;
+function openDialogue(char, spriteEl) {
+  // すでに同じキャラが話し中なら無視（idで比較）
+  const sameChar = _dlgChar && _dlgChar._srcId === char.id;
+  if (sameChar && document.getElementById('dialogue-box').classList.contains('open')) return;
+
+  clearInterval(_dlgTimer);
+
+  // モバイル(600px未満): 長いセリフを ~24文字ずつページ分割して CLICK で続きを表示
+  let dialogues = char.dialogues;
+  if (window.innerWidth < 600) {
+    dialogues = char.dialogues.flatMap(d => paginateText(d, 24));
+  }
+
+  _dlgChar = { ...char, dialogues, _srcId: char.id };
   _dlgLine = 0;
 
   const hint = char.id ? document.getElementById('hint-' + char.id) : null;
@@ -2195,7 +2234,7 @@ function openDialogue(char, spriteEl) {
 
   document.getElementById('dlg-name').textContent = char.name;
   document.getElementById('dialogue-box').classList.add('open');
-  typeText(char.dialogues[0]);
+  typeText(dialogues[0]);
 }
 
 function showDlgChoices(choices) {
