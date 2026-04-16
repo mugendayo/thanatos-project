@@ -1003,6 +1003,7 @@ html, body {
 /* field→world 帰還: HTMLレンダリング前から即座にオーバーレイを表示してフラッシュを防ぐ */
 html[data-return="1"] #transition-overlay {
   opacity: 1;
+  background: rgb(0, 5, 30); /* 帰還中は完全不透明（alpha除去） */
   transition: none;
   pointer-events: none;
 }
@@ -1608,15 +1609,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   initModal();
 
-  // フィールドから戻ってきた場合: スクロール位置確定後にフェードアウト
+  // フィールドから戻ってきた場合:
+  // setInitialScroll() はすでに実行済み → スクロール位置確定後にペイントを2フレーム待ってフェードアウト
   if (document.documentElement.dataset.return === '1') {
-    // setInitialScroll() 完了 + ペイント確定を待ってからオーバーレイを消す
-    // 2rAF だけでは paint が間に合わないケースがあるため 80ms 待機
-    setTimeout(() => {
-      requestAnimationFrame(() => {
-        delete document.documentElement.dataset.return;
-      });
-    }, 80);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      delete document.documentElement.dataset.return;
+    }));
   }
 });
 
